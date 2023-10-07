@@ -1,0 +1,199 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{1c9ac28a-3e4c-454a-8aac-5b5fc7f8a7e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\render">
+      <UniqueIdentifier>{35937bbe-0e71-498b-8316-06d6bc9ff0c3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="app.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="device.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gameobject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="instance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="swapchain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="renderer.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="descriptors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="offscreen_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="terrain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="terrain_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="cascadeshadow_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="vsm_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="window.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="app.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="device.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gameobject.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="helper.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="instance.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="light.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="model.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="swapchain.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gui.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="renderer.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="descriptors.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="offscreen_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="material.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="terrain.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="terrain_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="cascadeshadow_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="vertex.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="renderinfo.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vsm_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="compile.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="shaders\shadow.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\terrain.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\terrain.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\cascade.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\cascade.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\shadow.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\scene.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\scene.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\vsm.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="shaders\vsm.vert">
+      <Filter>Source Files\shaders</Filter>
+    </Text>
+  </ItemGroup>
+</Project>
