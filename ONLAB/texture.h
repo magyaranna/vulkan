@@ -9,6 +9,8 @@
 #include "device.h"
 #include "swapchain.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace v {
 
@@ -17,7 +19,7 @@ namespace v {
 	private:
 
 		Device& device;
-		
+
 
 		std::string texture_path;
 		std::string normalmap_path;
@@ -26,6 +28,7 @@ namespace v {
 		VkDeviceMemory textureImageMemory;
 		VkImageView textureImageView;
 		VkSampler textureSampler;
+		uint32_t mipLevels;
 
 		VkImage normalMapImage;
 		VkDeviceMemory normalMapImageMemory;
@@ -43,16 +46,13 @@ namespace v {
 		void createNormalMapImageView();
 		void createNormalMapSampler();
 
-		void createDescriptorSets( VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
+		void createDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
 
 
-		void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-
-		void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
 	public:
 
-		Texture(Device& device, VkDescriptorSetLayout layout, VkDescriptorPool pool,  std::string texture,  std::string normal);
+		Texture(Device& device, VkDescriptorSetLayout layout, VkDescriptorPool pool, std::string texture, std::string normal);
 		~Texture();
 
 		void destroy();

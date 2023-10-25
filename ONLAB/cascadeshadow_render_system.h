@@ -13,7 +13,7 @@
 
 namespace v {
 
-	struct CascadeShadowmap{
+	struct CascadeShadowmap {
 		//imaeg, mem, imageview, sampler
 		VkImage image;
 		VkDeviceMemory mem;
@@ -21,7 +21,7 @@ namespace v {
 		VkSampler sampler;
 
 		std::vector<VkDescriptorSet> descriptorSets;
-		
+
 
 	};
 
@@ -34,8 +34,8 @@ namespace v {
 
 	};
 
-	#define SHADOW_MAP_CASCADE_COUNT 4
-	#define SHADOWMAP_DIM 2000
+#define SHADOW_MAP_CASCADE_COUNT 4
+#define SHADOWMAP_DIM 2000
 
 	class CascadeShadowRenderSystem {
 	private:
@@ -46,7 +46,7 @@ namespace v {
 		std::unique_ptr<Pipeline> pipeline;
 		VkRenderPass renderPass;
 
-		float cascadeSplitLambda = 0.95f;
+		float cascadeSplitLambda = 0.2f;
 		CascadeShadowmap shadowMap;
 		std::array<Cascade, SHADOW_MAP_CASCADE_COUNT> cascades;
 
@@ -60,9 +60,9 @@ namespace v {
 		std::vector<VkBuffer> uniformbuffer;
 		std::vector<VkDeviceMemory> uniformbufferMem;
 
-		
+
 		void createUniformBuffers();
-		
+
 		void createDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);    //viewprojmx + index
 		std::vector<VkDescriptorSet> MXDescriptorSets;
 
@@ -71,11 +71,15 @@ namespace v {
 
 		void createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayouts);
 		void createPipeline();
-		
+
 
 		void createRenderPass();
 		void createShadowmapResources();
-	
+
+		std::vector<glm::mat4> getLightSpaceMatrices(std::unique_ptr<Camera> const& camera, glm::vec3 dir, std::vector<float> shadowCascadeLevels);
+		glm::mat4 getLightSpaceMatrix(std::unique_ptr<Camera> const& camera, glm::vec3 dir, const float nearPlane, const float farPlane);
+
+
 
 	public:
 
@@ -85,7 +89,7 @@ namespace v {
 
 
 		void updateCascades(std::unique_ptr<Camera> const& camera, glm::vec3 dir);
-		void updateUniformBuffers(uint32_t currentImage);  
+		void updateUniformBuffers(uint32_t currentImage);
 
 		void renderGameObjects(VkCommandBuffer commandBuffer, std::unordered_map<unsigned int, std::unique_ptr<GameObject>>& gameobjects, std::unique_ptr<Terrain> const& terrain,
 			int currentFrame);

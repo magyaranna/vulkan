@@ -10,10 +10,10 @@ namespace v {
 
 		createLightUniformBuffers();
 		createLightVPUniformBuffers();
-		
+
 
 		createDescriptorSets(layout, pool);
-		
+
 	}
 	Light::~Light() {
 
@@ -27,34 +27,34 @@ namespace v {
 		}
 	}
 
-	
 
-	
-    void Light::createLightUniformBuffers() {
-        VkDeviceSize bufferSize = sizeof(UniformBufferLight);
 
-        lightUniformBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-        lightUniformBuffersMemory.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-       
 
-        for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-            Helper::createBuffer(device,bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, lightUniformBuffers[i], lightUniformBuffersMemory[i]);
-        }
-    }
-    void Light::createLightVPUniformBuffers() {
-        VkDeviceSize bufferSize = sizeof(UniformBufferLightVP);
+	void Light::createLightUniformBuffers() {
+		VkDeviceSize bufferSize = sizeof(UniformBufferLight);
+
+		lightUniformBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+		lightUniformBuffersMemory.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+
+		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+			Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, lightUniformBuffers[i], lightUniformBuffersMemory[i]);
+		}
+	}
+	void Light::createLightVPUniformBuffers() {
+		VkDeviceSize bufferSize = sizeof(UniformBufferLightVP);
 
 		lightVPUniformBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-        lightVPUniformBuffersMemory.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+		lightVPUniformBuffersMemory.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
 
-        for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-            Helper::createBuffer(device,bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, lightVPUniformBuffers[i], lightVPUniformBuffersMemory[i]);
-        }
-    }
+		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+			Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, lightVPUniformBuffers[i], lightVPUniformBuffersMemory[i]);
+		}
+	}
 
 	void Light::updateLightUniformBuffer(uint32_t currentImage) {
-			
-		UniformBufferLight ubl = {};	 
+
+		UniformBufferLight ubl = {};
 		ubl.lightPosition = position;
 		ubl.lightDir = dir;
 
@@ -66,27 +66,27 @@ namespace v {
 
 	void Light::updateLightVPUniformBuffer(uint32_t currentImage) {
 
-		UniformBufferLightVP ubs = {};	
-	
-		                                     
-		
+		UniformBufferLightVP ubs = {};
+
+
+
 		//ubs.proj = glm::ortho(-80.0f, 80.0f, -80.0f, 80.0f, 0.1f, 70.0f);  //50.0f
-		ubs.proj = glm::ortho(-80.0f, 80.0f, -80.0f, 80.0f, 0.1f, 200.0f);  
+		ubs.proj = glm::ortho(-80.0f, 80.0f, -80.0f, 80.0f, 0.1f, 200.0f);
 
 
 
 		ubs.view = glm::lookAt(glm::vec3(position.x, position.y, position.z),
-			glm::vec3(position.x, position.y, position.z) + dir  ,
+			glm::vec3(position.x, position.y, position.z) + dir,
 			glm::vec3(0.0f, 1.0f, 0.0f));
 
-		
+
 		void* data;
 		vkMapMemory(device.getLogicalDevice(), lightVPUniformBuffersMemory[currentImage], 0, sizeof(ubs), 0, &data);
 		memcpy(data, &ubs, sizeof(ubs));
 		vkUnmapMemory(device.getLogicalDevice(), lightVPUniformBuffersMemory[currentImage]);
 	}
 
-	
+
 
 	void Light::createDescriptorSets(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool) {
 
@@ -103,7 +103,7 @@ namespace v {
 		}
 
 		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-		
+
 			VkDescriptorBufferInfo lightBufferInfo{};
 			lightBufferInfo.buffer = lightVPUniformBuffers[i];
 			lightBufferInfo.offset = 0;
@@ -136,8 +136,8 @@ namespace v {
 
 		}
 	}
-	
 
 
-	
+
+
 }

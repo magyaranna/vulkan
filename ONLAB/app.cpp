@@ -3,7 +3,7 @@
 
 
 namespace v {
-    
+
 
     App::App() {
         glfwSetWindowUserPointer(window.getWindow(), this);
@@ -11,7 +11,7 @@ namespace v {
 
     }
 
-    App::~App() { 
+    App::~App() {
 
     }
 
@@ -24,23 +24,28 @@ namespace v {
         auto model_bindings = Binding()
             .addBinding(5, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)  //texture
             .addBinding(6, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT); //normalmap
-           
+
         std::unique_ptr<DescriptorSetLayout> model_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, model_bindings.bindings);
 
         std::shared_ptr<Model> sponza_model = std::make_shared<Model>(device, "models/tree.obj", model_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        //std::shared_ptr<Model> m2 = std::make_shared<Model>(device, "models/viking_room.obj", model_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
 
 
         /*gameobj*/
         auto gameobject_bindings = Binding()
             .addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);  //model mx
         std::unique_ptr<DescriptorSetLayout> gameobject_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, gameobject_bindings.bindings);
-                                                                                                                   
+
         //std::unique_ptr<GameObject> obj = std::make_unique<GameObject>(0, device, glm::vec3(0.02f, 0.02f, 0.02f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-        std::unique_ptr<GameObject> obj = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        //std::unique_ptr<GameObject> obj2 = std::make_unique<GameObject>(0, device, glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(10.0f, 2.0f, 2.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
 
-        obj->model = sponza_model;
+        obj1->model = sponza_model;
+        // obj2->model = m2;
 
-        gameobjects.emplace(obj->getId(), std::move(obj));
+         //gameobjects.emplace(obj2->getId(), std::move(obj2));
+        gameobjects.emplace(obj1->getId(), std::move(obj1));
+
 
 
         /*terrain*/
@@ -61,7 +66,7 @@ namespace v {
             .addBinding(4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
         std::unique_ptr<DescriptorSetLayout> shadow_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, shadowmap_binding.bindings);
 
-        
+
 
         /*camera*/
         Binding camera_binding = Binding()
@@ -70,21 +75,26 @@ namespace v {
 
         camera = std::make_unique<Camera>(device, *renderer.swapchain, window.getWidth(),
             window.getHeight(), glm::vec3(0.0f, 10.0f, 10.0f), camera_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-        
+
 
         /*CascadeShadowMAp Layouts*/
         Binding cascadeShadowmap_binding = Binding()
             .addBinding(7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
         std::unique_ptr<DescriptorSetLayout> cascadeShadowmap_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, cascadeShadowmap_binding.bindings);
-        
+
         Binding lightspacemx_binding = Binding()
             .addBinding(8, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL);
         std::unique_ptr<DescriptorSetLayout> cascadeUniform_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, lightspacemx_binding.bindings);
 
-
+        /*VSM*/
         Binding vsmShadowMap_Binding = Binding()
             .addBinding(9, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
         std::unique_ptr<DescriptorSetLayout> vsmShadowmap_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, vsmShadowMap_Binding.bindings);
+
+        /*ESM*/
+        Binding esmShadowMap_Binding = Binding()
+            .addBinding(10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+        std::unique_ptr<DescriptorSetLayout> esmShadowmap_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, esmShadowMap_Binding.bindings);
 
 
         descriptorLayouts.push_back(camera_descriptorLayout->getDescriptorSetLayout());   //VP
@@ -95,16 +105,25 @@ namespace v {
         descriptorLayouts.push_back(cascadeShadowmap_descriptorLayout->getDescriptorSetLayout());  //cascadeShadowmap
         descriptorLayouts.push_back(cascadeUniform_descriptorLayout->getDescriptorSetLayout());  //cascadeuniform->mx, depth
         descriptorLayouts.push_back(vsmShadowmap_descriptorLayout->getDescriptorSetLayout());  //vsm shadowmap
-        
-        
+        descriptorLayouts.push_back(esmShadowmap_descriptorLayout->getDescriptorSetLayout());  //esm shadowmap
+
 
         RenderSystem renderSystem{ device, renderer.swapchain->getRenderPass(),descriptorLayouts };
-        OffScreenRenderSystem offscreenRenderSystem{ device, { descriptorLayouts[2], descriptorLayouts[3] },shadow_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool()};
-        TerrainRenderSystem terrainRenderSystem{ device,renderer.swapchain->getRenderPass(), {descriptorLayouts[0], descriptorLayouts[2], descriptorLayouts[3], descriptorLayouts[4], descriptorLayouts[5], descriptorLayouts[6],  descriptorLayouts[7]} };
+        OffScreenRenderSystem offscreenRenderSystem{ device, { descriptorLayouts[2], descriptorLayouts[3] },shadow_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool() };
+        TerrainRenderSystem terrainRenderSystem{ device,renderer.swapchain->getRenderPass(),
+            {descriptorLayouts[0], descriptorLayouts[2], descriptorLayouts[3], descriptorLayouts[4], descriptorLayouts[5], descriptorLayouts[6],  descriptorLayouts[7], descriptorLayouts[8]} };
 
         CascadeShadowRenderSystem cascadeRenderSystem{ device, {descriptorLayouts[6], descriptorLayouts[2]},
             descriptorLayouts[5], descriptorPool.getDescriptorPool(), light->getPos() };
+
         VSM_RenderSystem vsmRenderSystem{ device,{ descriptorLayouts[2], descriptorLayouts[3] } ,vsmShadowmap_descriptorLayout->getDescriptorSetLayout() ,descriptorPool.getDescriptorPool() };
+        
+
+        //Helper::transitionImageLayout(device, shadowMapVSM.colorImage, VK_FORMAT_R32G32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, shadowMapVSM.mipLevels);
+        //Helper::generateMipmaps(device, shadowMapVSM.colorImage, VK_FORMAT_R32G32_SFLOAT, SHADOWMAP_DIM, SHADOWMAP_DIM, shadowMapVSM.mipLevels);   
+
+        
+        ESM_RenderSystem esmRenderSystem{ device,{ descriptorLayouts[2], descriptorLayouts[3] , descriptorLayouts[4] } ,esmShadowmap_descriptorLayout->getDescriptorSetLayout() ,descriptorPool.getDescriptorPool() };
 
         while (!window.shouldClose()) {
             glfwPollEvents();
@@ -125,22 +144,22 @@ namespace v {
                 gameobjects.at(0)->updateUniformBuffer(renderer.currentFrameIndex, gui->spin);
                 light->updateLightUniformBuffer(renderer.currentFrameIndex);
                 camera->updateGlobalUniformBuffer(renderer.currentFrameIndex);
-                
+
                 light->updateLightVPUniformBuffer(renderer.currentFrameIndex);
-                terrain->updateUniformBuffer(renderer.currentFrameIndex,gui->spin);
+                terrain->updateUniformBuffer(renderer.currentFrameIndex, gui->spin);
 
                 cascadeRenderSystem.updateCascades(camera, light->getDir());
                 cascadeRenderSystem.updateUniformBuffers(renderer.currentFrameIndex);
 
                 vkDeviceWaitIdle(device.getLogicalDevice());
 
-                
+
                 cascadeRenderSystem.renderGameObjects(commandBuffer, gameobjects, terrain, renderer.currentFrameIndex);
 
 
                 offscreenRenderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, gui->vsm, light, gameobjects, terrain);
                 vsmRenderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, light, gameobjects, terrain);
-                
+                esmRenderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, light, gameobjects, terrain, offscreenRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex));
 
                 renderer.beginSwapChainRenderPass(commandBuffer);
                 {
@@ -150,19 +169,19 @@ namespace v {
                         offscreenRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex),
                         cascadeRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex),
                         cascadeRenderSystem.getMXDescriptorSet(renderer.currentFrameIndex),
-                        //cascadeRenderSystem.getMXDescriptorSet(renderer.currentFrameIndex),
-                        vsmRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex)
+                        vsmRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex),
+                        esmRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex)
                     };
 
-                      terrainRenderSystem.renderTerrain(commandBuffer, renderer.currentFrameIndex,renderInfo);
+                    terrainRenderSystem.renderTerrain(commandBuffer, renderer.currentFrameIndex, renderInfo);
 
-                      renderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, renderInfo);
+                    renderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, renderInfo);
                 }
                 renderer.endRenderPass(commandBuffer);
-                
+
 
                 renderer.endFrame();     //submit
-            }                                                    
+            }
         }
         vkDeviceWaitIdle(device.getLogicalDevice());
     }

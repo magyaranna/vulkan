@@ -7,7 +7,7 @@
 
 namespace v {
 
-	class Gui {
+    class Gui {
 
     public:
 
@@ -20,7 +20,7 @@ namespace v {
         bool cascadecolor = false;
         bool vsm = false;
         bool esm = false;
-        
+
 
         Gui(Window& window, Device& device, SwapChain& swapchain, VkDescriptorPool pool);
         ~Gui();
@@ -29,8 +29,8 @@ namespace v {
         void updateGui(Light& light);
         void renderGui(VkCommandBuffer cmd);
 
-        
-	};
+
+    };
 
 
 

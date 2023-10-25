@@ -21,9 +21,9 @@ namespace v {
 
 		Device& device;
 
-		glm::vec4 position = glm::vec4(10.0f, 50.0f, 50.0f, 1.0f); // glm::vec4(10.0f, 50.0f, 50.0f, 1.0f);
-		glm::vec3 dir = glm::vec3(0.0f, -0.8f, -1.0f);
-		
+		glm::vec4 position = glm::vec4(0.0f, 50.0f, 0.0f, 1.0f); // glm::vec4(10.0f, 50.0f, 50.0f, 1.0f);
+		glm::vec3 dir = glm::vec3(-0.5f, -1.0f, -0.5f);
+
 
 		std::vector<VkBuffer> lightUniformBuffers;
 		std::vector<VkDeviceMemory> lightUniformBuffersMemory;
@@ -32,14 +32,14 @@ namespace v {
 		std::vector<VkDeviceMemory> lightVPUniformBuffersMemory;
 
 		std::vector<VkDescriptorSet> lightDescriptorSets;
-		
 
-		
+
+
 		void createLightUniformBuffers();
 		void createLightVPUniformBuffers();
 
 		void createDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
-		
+
 	public:
 
 		Light(Device& device, VkDescriptorSetLayout layout, VkDescriptorPool pool);
@@ -49,7 +49,7 @@ namespace v {
 			glm::mat4 view;
 			glm::mat4 proj;
 		};
-		struct UniformBufferLight {	
+		struct UniformBufferLight {
 			glm::vec4 lightPosition;
 			glm::vec3 lightDir;
 
@@ -58,7 +58,7 @@ namespace v {
 
 		void updateLightUniformBuffer(uint32_t currentImage);
 		void updateLightVPUniformBuffer(uint32_t currentImage);
-		
+
 
 		void setDirection(glm::vec3 value) { dir = value; }
 
@@ -71,9 +71,9 @@ namespace v {
 		VkDescriptorSet& getLightDescriptorSet(int i) {
 			return lightDescriptorSets[i];
 		}
-		
 
-		
+
+
 	};
 
 

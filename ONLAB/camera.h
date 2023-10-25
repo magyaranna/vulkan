@@ -32,7 +32,7 @@ namespace v {
 		glm::vec3 pos;
 		glm::vec3 oriantation = glm::vec3(0.0f, -0.5f, -1.0f);
 		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-		float znear = 0.1f;
+		float znear = 0.1f; //0.1f;
 		float zfar = 100.0f;
 
 		bool firstClick = true;
@@ -46,12 +46,12 @@ namespace v {
 		std::vector<VkBuffer> uniformBuffers;
 		std::vector<VkDeviceMemory> uniformBuffersMemory;
 		void createGlobalUniformBuffers();
-		
+
 		std::vector<VkDescriptorSet> descriptorSets;
 		void createGlobalDescriptorSets(VkDescriptorSetLayout layout, VkDescriptorPool pool);
 
 	public:
-		 
+
 		Camera(Device& device, SwapChain& swapchain, int width, int height, glm::vec3 pos, VkDescriptorSetLayout layout, VkDescriptorPool pool);
 		~Camera();
 

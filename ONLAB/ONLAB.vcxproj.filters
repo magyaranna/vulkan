@@ -84,6 +84,9 @@
     <ClCompile Include="vsm_render_system.cpp">
       <Filter>Source Files\render</Filter>
     </ClCompile>
+    <ClCompile Include="esm_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.h">
@@ -158,6 +161,9 @@
     <ClInclude Include="vsm_render_system.h">
       <Filter>Source Files\render</Filter>
     </ClInclude>
+    <ClInclude Include="esm_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat">
@@ -188,6 +194,12 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\vsm.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\esm.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\esm.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

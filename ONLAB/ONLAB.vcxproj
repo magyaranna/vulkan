@@ -148,6 +148,7 @@
     <ClCompile Include="cascadeshadow_render_system.cpp" />
     <ClCompile Include="descriptors.cpp" />
     <ClCompile Include="device.cpp" />
+    <ClCompile Include="esm_render_system.cpp" />
     <ClCompile Include="gameobject.cpp" />
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="instance.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="cascadeshadow_render_system.h" />
     <ClInclude Include="descriptors.h" />
     <ClInclude Include="device.h" />
+    <ClInclude Include="esm_render_system.h" />
     <ClInclude Include="renderinfo.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helper.h" />
@@ -195,6 +197,8 @@
     <None Include="compile.bat" />
     <None Include="shaders\cascade.frag" />
     <None Include="shaders\cascade.vert" />
+    <None Include="shaders\esm.frag" />
+    <None Include="shaders\esm.vert" />
     <None Include="shaders\scene.frag" />
     <None Include="shaders\scene.vert" />
     <None Include="shaders\shadow.frag" />

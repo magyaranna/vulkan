@@ -12,7 +12,7 @@ namespace v {
 		Window& window;
 		Instance& instance;
 		Device& device;
-		
+
 
 		VkSwapchainKHR swapChain;
 		std::vector<VkImage> swapChainImages;
@@ -22,14 +22,19 @@ namespace v {
 
 
 		VkRenderPass renderPass;
-		
+
 
 
 		std::vector<VkFramebuffer> swapChainFramebuffers;
-		
+
 		std::vector<VkSemaphore> imageAvailableSemaphores;
 		std::vector<VkSemaphore> renderFinishedSemaphores;
 		std::vector<VkFence> inFlightFences;
+
+
+		VkImage colorImage;
+		VkDeviceMemory colorImageMemory;
+		VkImageView colorImageView;
 
 		VkImage depthImage;
 		VkDeviceMemory depthImageMemory;
@@ -43,11 +48,12 @@ namespace v {
 		void createImageViews();
 
 		void createRenderPass();
-		
+
 
 		void createFramebuffers();
 		void createSyncObjects();
 
+		void createColorResources();
 		void createDepthResources();
 
 		void cleanupSwapChain();
@@ -58,7 +64,7 @@ namespace v {
 		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 
-		
+
 
 
 	public:
@@ -69,13 +75,13 @@ namespace v {
 		~SwapChain();
 		SwapChain(const SwapChain&) = delete;
 		void operator=(const SwapChain&) = delete;
-		
-		
+
+
 		void recreateSwapChain();
 
 
-		
-		
+
+
 		//draw
 		VkResult acquireNextImage(uint32_t* imageIndex);
 		VkResult submitCommandBuffer(const VkCommandBuffer* buffers, uint32_t* imageIndex);
@@ -87,7 +93,7 @@ namespace v {
 		VkExtent2D getSwapChainExtent() { return swapChainExtent; }
 		std::vector<VkImageView> getSwapChainImageViews() { return swapChainImageViews; }
 		VkRenderPass getRenderPass() { return renderPass; }
-		
+
 		VkFramebuffer getSwapChainFramebuffers(int i) { return swapChainFramebuffers[i]; }
 		std::vector<VkSemaphore> getImageAvailableSemaphores() { return imageAvailableSemaphores; }
 		std::vector<VkSemaphore> getRenderFinishedSemaphores() { return renderFinishedSemaphores; }
@@ -97,9 +103,9 @@ namespace v {
 		VkImageView getDepthImageView() { return depthImageView; }
 		bool getFramebufferResized() { return framebufferResized; }
 		void setFramebufferResized(bool value) { framebufferResized = value; }
-		
-		
-		
+
+
+
 
 	};
 }

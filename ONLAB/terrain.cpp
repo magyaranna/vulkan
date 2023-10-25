@@ -4,7 +4,7 @@
 
 namespace v {
 
-	Terrain::Terrain(Device& device, glm::vec3 scale, VkDescriptorSetLayout layout, VkDescriptorPool pool): device(device), scale(scale) {
+	Terrain::Terrain(Device& device, glm::vec3 scale, VkDescriptorSetLayout layout, VkDescriptorPool pool) : device(device), scale(scale) {
 		generate();
 		createVertexBuffer();
 		createIndexBuffer();
@@ -12,7 +12,7 @@ namespace v {
 		createUniformBuffers();
 		createDescriptorSets(layout, pool);
 
-		
+
 	}
 	Terrain::~Terrain() {
 		vkDestroyBuffer(device.getLogicalDevice(), indexBuffer, nullptr);
@@ -28,28 +28,28 @@ namespace v {
 	}
 
 
-	 void Terrain::draw(VkCommandBuffer cmd) {
+	void Terrain::draw(VkCommandBuffer cmd) {
 
 
-		 VkBuffer buffers[] = { vertexBuffer };
-		 VkDeviceSize offsets[] = { 0 };
+		VkBuffer buffers[] = { vertexBuffer };
+		VkDeviceSize offsets[] = { 0 };
 
-		 vkCmdBindVertexBuffers(cmd, 0, 1, buffers, offsets);
-		 vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		 vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-		
+		vkCmdBindVertexBuffers(cmd, 0, 1, buffers, offsets);
+		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
-	 }
+
+	}
 
 	void Terrain::generate() {
 
-		
+
 		int width, height, nChannels;
 		unsigned char* data = stbi_load("textures/mo.png",
 			&width, &height, &nChannels,
 			0);
 
-	
+
 		float yScale = 64.0f / 256.0f, yShift = 16.0f;
 		int rez = 1;
 		unsigned bytePerPixel = nChannels;
@@ -63,7 +63,7 @@ namespace v {
 				unsigned char y = pixelOffset[0];
 
 				Vertex vertex{};
-				
+
 				vertex.pos = glm::vec3(-height / 2.0f + height * i / (float)height, (int)y * yScale - yShift, -width / 2.0f + width * j / (float)width);
 				//vertex.normal = glm::vec3(0.0f);
 				vertices.push_back(vertex);
@@ -88,8 +88,8 @@ namespace v {
 				indices.push_back(bottomRight);
 			}
 		}
-		
-	
+
+
 
 		/*CALCULATE NORMALS*/
 		for (size_t i = 0; i < indices.size(); i += 3) {
@@ -111,7 +111,7 @@ namespace v {
 		for (size_t i = 0; i < vertices.size(); ++i) {
 			vertices[i].normal = glm::normalize(vertices[i].normal);
 		}
-		
+
 	}
 	glm::vec3 Terrain::CalculateNormal(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3) {
 		glm::vec3 edge1 = v2 - v1;
@@ -187,7 +187,7 @@ namespace v {
 
 		//spin == true ?
 			//ubo.modelmx = glm::rotate(glm::translate(glm::mat4(1.0f), offset), time * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)) :
-			ubo.modelmx = glm::translate(glm::mat4(1.0f), offset);
+		ubo.modelmx = glm::translate(glm::mat4(1.0f), offset);
 
 		ubo.modelmx = glm::scale(ubo.modelmx, scale);
 

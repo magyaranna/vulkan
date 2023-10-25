@@ -32,6 +32,9 @@ layout(location = 9) out vec3 pos;
 
 void main() {
     gl_Position = global.proj * global.view * obj.model * vec4(inPos, 1.0);
+
+
+
     
     worldPos = (obj.model * vec4(inPos, 1.0)).xyz;  
     viewPos = (global.view * obj.model * vec4(inPos, 1.0)).xyz;  

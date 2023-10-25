@@ -5,15 +5,15 @@
 
 namespace v {
 
-	Renderer::Renderer(Window& window, Device& device, Instance& instance) : window(window), device(device), instance(instance){
-		swapchain = std::make_unique<SwapChain>(window, device, instance);
+    Renderer::Renderer(Window& window, Device& device, Instance& instance) : window(window), device(device), instance(instance) {
+        swapchain = std::make_unique<SwapChain>(window, device, instance);
         createCommandBuffers();
-	}
+    }
 
-	Renderer::~Renderer() {
+    Renderer::~Renderer() {
 
-	}
-	
+    }
+
     void Renderer::createCommandBuffers() {
         commandBuffers.resize(swapchain->MAX_FRAMES_IN_FLIGHT);
 
@@ -80,7 +80,7 @@ namespace v {
 
     void Renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer) {
         assert(isFrameStarted && "frame not started");
-        assert(commandBuffer == getCurrentCommandBuffer() &&"cmd is from another frame");
+        assert(commandBuffer == getCurrentCommandBuffer() && "cmd is from another frame");
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -93,12 +93,12 @@ namespace v {
         clearValues[0].color = { {0.6f, 0.871f, 0.882f, 1.0f} };
         clearValues[1].depthStencil = { 1.0f, 0 };
 
-       
+
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 
         vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        
+
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
@@ -114,14 +114,14 @@ namespace v {
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     }
-    
 
-   
+
+
     void Renderer::endRenderPass(VkCommandBuffer commandBuffer) {
         assert(isFrameStarted && "frame not started");
         assert(commandBuffer == getCurrentCommandBuffer() && "cmd is from another frame");
         vkCmdEndRenderPass(commandBuffer);
     }
-   
-    
+
+
 }

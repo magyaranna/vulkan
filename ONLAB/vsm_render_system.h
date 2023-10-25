@@ -10,10 +10,19 @@
 
 #include <cassert>
 
+
+//https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-8-summed-area-variance-shadow-maps
+
 namespace v {
 
 	struct VSMShadowmap {
-		
+
+		uint32_t mipLevels;
+
+		VkImage MSAAcolorImage;
+		VkDeviceMemory MSAAcolorMem;
+		VkImageView MSAAcolorView;
+
 		VkImage colorImage;
 		VkDeviceMemory colorMem;
 		VkImageView colorView;
@@ -24,7 +33,7 @@ namespace v {
 		std::vector<VkDescriptorSet> descriptorSets;
 	};
 
-#define SHADOWMAP_DIM 10000
+#define SHADOWMAP_DIM 1000
 
 	class VSM_RenderSystem {
 	private:
@@ -48,7 +57,6 @@ namespace v {
 		void createShadowmapDescriptorSets(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool);
 
 
-
 	public:
 
 		VSM_RenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkDescriptorSetLayout shadowLayout, VkDescriptorPool pool);
@@ -60,7 +68,7 @@ namespace v {
 
 
 		VkDescriptorSet& getShadowmapDescriptorSet(int i) {
-				return shadowMapVSM.descriptorSets[i];
+			return shadowMapVSM.descriptorSets[i];
 		}
 	};
 }

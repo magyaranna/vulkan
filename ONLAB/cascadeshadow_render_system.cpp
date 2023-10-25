@@ -16,10 +16,10 @@ namespace v {
 
 		createUniformBuffers();
 		createDescriptorSets(setLayouts[0], descriptorPool);
-		     
+
 		createShadowMapDescriptorSets(shadowmapLayout, descriptorPool, device.getLogicalDevice());
 
-		
+
 	}
 	CascadeShadowRenderSystem::~CascadeShadowRenderSystem() {
 
@@ -50,7 +50,7 @@ namespace v {
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-		std::vector<VkDescriptorSetLayout> layouts = setLayouts ;
+		std::vector<VkDescriptorSetLayout> layouts = setLayouts;
 		pipelineLayoutInfo.setLayoutCount = layouts.size();
 		pipelineLayoutInfo.pSetLayouts = layouts.data();
 
@@ -79,6 +79,15 @@ namespace v {
 
 		configinfo.pipelineLayout = pipelineLayout;
 		configinfo.renderPass = renderPass;
+
+		VkPipelineColorBlendStateCreateInfo colorBlending = {};
+		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+		colorBlending.logicOpEnable = VK_FALSE;
+		colorBlending.logicOp = VK_LOGIC_OP_COPY;
+		colorBlending.attachmentCount = 0;  //1
+		colorBlending.pAttachments = nullptr;
+
+		configinfo.colorBlending = colorBlending;
 
 		/*vertexinput*/
 		VkVertexInputBindingDescription bindingDescription{};
@@ -117,14 +126,16 @@ namespace v {
 
 		pushConstants[0] = cascadeIndex;
 		vkCmdPushConstants(commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pushConstants), pushConstants.data());
-		                                                                                  
+
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &MXDescriptorSets[currentFrame], 0, nullptr);
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &terrain->getDescriptorSet(currentFrame), 0, nullptr);
 		terrain->draw(commandBuffer);
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &gameobjects.at(0)->getDescriptorSet(currentFrame), 0, nullptr);
-		gameobjects.at(0)->model->draw(commandBuffer, pipelineLayout, currentFrame, true);
+		for (int i = 0; i < gameobjects.size(); i++) {
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &gameobjects.at(i)->getDescriptorSet(currentFrame), 0, nullptr);
+			gameobjects.at(i)->model->draw(commandBuffer, pipelineLayout, currentFrame, true);
+		}
 
 	}
 
@@ -162,7 +173,7 @@ namespace v {
 			renderPassBeginInfo.framebuffer = cascades[i].frameBuffer;
 			vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 			{
-				renderScene(commandBuffer, gameobjects,terrain, i, currentFrame);
+				renderScene(commandBuffer, gameobjects, terrain, i, currentFrame);
 			}
 			vkCmdEndRenderPass(commandBuffer);
 		}
@@ -183,7 +194,7 @@ namespace v {
 
 	void CascadeShadowRenderSystem::updateUniformBuffers(uint32_t currentImage) {
 		UniformLightSpace ubo = {};
-		
+
 		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++) {
 			ubo.cascadeViewProjMat[i] = cascades[i].viewProjMx;
 			ubo.cascadeSplits[i] = cascades[i].splitDepth;      /**/
@@ -195,11 +206,17 @@ namespace v {
 		vkUnmapMemory(device.getLogicalDevice(), uniformbufferMem[currentImage]);
 	}
 
+
+
+	//https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-10-parallel-split-shadow-maps-programmable-gpus
+
+	//https://johanmedestrom.wordpress.com/2016/03/18/opengl-cascaded-shadow-maps/
+/*
 	void CascadeShadowRenderSystem::updateCascades(std::unique_ptr<Camera> const& camera, glm::vec3 dir) {
 		float cascadeSplits[SHADOW_MAP_CASCADE_COUNT];
 
 		float clipRange = camera->getFarClip() - camera->getNearClip();
-		float nearclip = camera->getNearClip()+ 1.5;
+		float nearclip = camera->getNearClip();
 
 		float minZ = nearclip;
 		float maxZ = nearclip + clipRange;
@@ -208,13 +225,12 @@ namespace v {
 		float ratio = maxZ / minZ;
 
 
-		//splitdistances 
 		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++) {
 			float p = (i + 1) / static_cast<float>(SHADOW_MAP_CASCADE_COUNT);
-			float log = minZ * std::pow(ratio, p);
-			float uniform = minZ + range * p;
-			float d = cascadeSplitLambda * (log - uniform) + uniform;
-			cascadeSplits[i] = (d - nearclip) / clipRange;
+			float log = minZ * std::pow(ratio, p);                                //ci_log = near * ratio^p
+			float uniform = minZ + range * p;                                     //ci_uniform = near + range*p
+			float d = cascadeSplitLambda * (log - uniform) + uniform;             //ci = lambda * ci_log + (1-lambda)* ci_uni
+			cascadeSplits[i] = (d - nearclip) / clipRange;    //[0,1]
 		}
 
 
@@ -235,14 +251,14 @@ namespace v {
 				glm::vec3(-1.0f, -1.0f,  1.0f),
 			};
 
-			//corners-> world space
+			//corners-> world space   iit megkapjuk az egesz nezetablak szeleit
 			glm::mat4 invCam = glm::inverse(camera->matrices.proj * camera->matrices.view);
 			for (uint32_t i = 0; i < 8; i++) {
 				glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
 				frustumCorners[i] = invCorner / invCorner.w;
 			}
 
-			//tavolsag a kozeli es tavoli sik kozott, 
+			//
 			for (uint32_t i = 0; i < 4; i++) {
 				glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
 				frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
@@ -255,6 +271,7 @@ namespace v {
 				frustumCenter += frustumCorners[i];
 			}
 			frustumCenter /= 8.0f;
+
 
 			float radius = 0.0f;
 			for (uint32_t i = 0; i < 8; i++) {
@@ -271,12 +288,118 @@ namespace v {
 			glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
 
 
-			cascades[i].splitDepth = (nearclip + splitDist * clipRange) * -1.0f;
+			cascades[i].splitDepth = (nearclip + splitDist * clipRange); //*-1.0f;
 			cascades[i].viewProjMx = lightOrthoMatrix * lightViewMatrix;
+
 
 			lastSplitDist = cascadeSplits[i];
 		}
+	} */
+
+	void CascadeShadowRenderSystem::updateCascades(std::unique_ptr<Camera> const& camera, glm::vec3 dir) {
+
+		//std::vector<float> shadowCascadeLevels{ camera->getFarClip() / 50.0f, camera->getFarClip() / 25.0f, camera->getFarClip() / 2.0f };
+		std::vector<float> shadowCascadeLevels{ 20.0f, 50.0f, 80.0f };
+		std::vector<glm::mat4> viewproj = getLightSpaceMatrices(camera, dir, shadowCascadeLevels);
+
+		for (int i = 0; i < 4; i++) {
+			if (i == 3) cascades[i].splitDepth = camera->getFarClip();
+			else cascades[i].splitDepth = shadowCascadeLevels[i];
+			cascades[i].viewProjMx = viewproj[i];
+		}
+
 	}
+
+	std::vector<glm::mat4> CascadeShadowRenderSystem::getLightSpaceMatrices(std::unique_ptr<Camera> const& camera, glm::vec3 dir, std::vector<float> shadowCascadeLevels)
+	{
+		std::vector<glm::mat4> ret;
+		for (size_t i = 0; i < shadowCascadeLevels.size() + 1; ++i)
+		{
+			if (i == 0)
+			{
+				ret.push_back(getLightSpaceMatrix(camera, dir, camera->getNearClip(), shadowCascadeLevels[i]));
+			}
+			else if (i < shadowCascadeLevels.size())
+			{
+				ret.push_back(getLightSpaceMatrix(camera, dir, shadowCascadeLevels[i - 1], shadowCascadeLevels[i]));
+			}
+			else
+			{
+				ret.push_back(getLightSpaceMatrix(camera, dir, shadowCascadeLevels[i - 1], camera->getFarClip()));
+			}
+		}
+		return ret;
+	}
+
+	glm::mat4 CascadeShadowRenderSystem::getLightSpaceMatrix(std::unique_ptr<Camera> const& camera, glm::vec3 dir, const float nearPlane, const float farPlane)
+	{
+		const auto proj = glm::perspective(glm::radians(90.0f), 800.0f / 600.0f, nearPlane, farPlane);
+		const auto projview = proj * camera->matrices.view;
+		const auto inv = glm::inverse(projview);
+
+		std::vector<glm::vec4> frustumCorners;
+		for (unsigned int x = 0; x < 2; ++x)
+		{
+			for (unsigned int y = 0; y < 2; ++y)
+			{
+				for (unsigned int z = 0; z < 2; ++z)
+				{
+					const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
+					frustumCorners.push_back(pt / pt.w);
+				}
+			}
+		}
+
+		glm::vec3 center = glm::vec3(0, 0, 0);
+		for (const auto& v : frustumCorners)
+		{
+			center += glm::vec3(v);
+		}
+		center /= frustumCorners.size();
+
+		const auto lightView = glm::lookAt(center - dir, center, glm::vec3(0.0f, 1.0f, 0.0f));    //* (farPlane - nearPlane)
+
+		float minX = std::numeric_limits<float>::max();
+		float maxX = std::numeric_limits<float>::lowest();
+		float minY = std::numeric_limits<float>::max();
+		float maxY = std::numeric_limits<float>::lowest();
+		float minZ = std::numeric_limits<float>::max();
+		float maxZ = std::numeric_limits<float>::lowest();
+		for (const auto& v : frustumCorners)
+		{
+			const auto trf = lightView * v;    //to lightspace
+			minX = std::min(minX, trf.x);
+			maxX = std::max(maxX, trf.x);
+			minY = std::min(minY, trf.y);
+			maxY = std::max(maxY, trf.y);
+			minZ = std::min(minZ, trf.z);
+			maxZ = std::max(maxZ, trf.z);
+		}
+
+
+		constexpr float zMult = 10.0f;
+		if (minZ < 0)
+		{
+			minZ *= zMult;
+		}
+		else
+		{
+			minZ /= zMult;
+		}
+		if (maxZ < 0)
+		{
+			maxZ /= zMult;
+		}
+		else
+		{
+			maxZ *= zMult;
+		}
+
+		//const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ- minZ);
+		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+		return lightProjection * lightView;
+	}
+
 
 	void CascadeShadowRenderSystem::createShadowMapDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool, VkDevice device) {
 		std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, descriptorLayout);
@@ -332,7 +455,7 @@ namespace v {
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = uniformbuffer[i];
 			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(UniformLightSpace);   
+			bufferInfo.range = sizeof(UniformLightSpace);
 
 			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
 
@@ -348,7 +471,7 @@ namespace v {
 
 		}
 	}
-	
+
 
 
 	void CascadeShadowRenderSystem::createRenderPass() {
@@ -498,17 +621,15 @@ namespace v {
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = VK_FILTER_LINEAR;
 		samplerInfo.minFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER; // VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
 		samplerInfo.anisotropyEnable = VK_TRUE;
 		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_TRUE;
-		samplerInfo.compareOp = VK_COMPARE_OP_LESS;
 		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = 200.0f;
+		samplerInfo.maxLod = 1.0f;
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
 		if (vkCreateSampler(device.getLogicalDevice(), &samplerInfo, nullptr, &shadowMap.sampler) != VK_SUCCESS) {
@@ -516,7 +637,6 @@ namespace v {
 		}
 	}
 }
-
 
 
 

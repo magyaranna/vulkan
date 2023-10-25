@@ -21,5 +21,6 @@ namespace v {
         VkDescriptorSet cascadeShadowmap;
         VkDescriptorSet cascadeLightSpaceMx;
         VkDescriptorSet vsmShadowmap;
+        VkDescriptorSet esmShadowmap;
     };
 }

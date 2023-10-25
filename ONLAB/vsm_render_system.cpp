@@ -7,19 +7,23 @@ namespace v {
 
 	VSM_RenderSystem::VSM_RenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkDescriptorSetLayout shadowLayout, VkDescriptorPool pool) : device(device) {
 
-		
+
 		createShadowRenderPass();
-		
+
 		createShadowmapResources();
 		createShadowmapDescriptorSets(shadowLayout, pool);
 
 		createPipelineLayout(setLayouts);
-		
+
 		createPipeline();
 	}
 	VSM_RenderSystem::~VSM_RenderSystem() {
-		
+
 		{
+			vkDestroyImageView(device.getLogicalDevice(), shadowMapVSM.MSAAcolorView, nullptr);
+			vkDestroyImage(device.getLogicalDevice(), shadowMapVSM.MSAAcolorImage, nullptr);
+			vkFreeMemory(device.getLogicalDevice(), shadowMapVSM.MSAAcolorMem, nullptr);
+
 			vkDestroyImageView(device.getLogicalDevice(), shadowMapVSM.colorView, nullptr);
 			vkDestroyImage(device.getLogicalDevice(), shadowMapVSM.colorImage, nullptr);
 			vkFreeMemory(device.getLogicalDevice(), shadowMapVSM.colorMem, nullptr);
@@ -40,10 +44,10 @@ namespace v {
 
 		VkRenderPassBeginInfo shadowRenderPassInfo = {};
 		shadowRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		
+
 		shadowRenderPassInfo.renderPass = renderPass;
 		shadowRenderPassInfo.framebuffer = shadowMapVSM.frameBuffer;
-		
+
 
 		shadowRenderPassInfo.renderArea.offset = { 0, 0 };
 
@@ -73,7 +77,7 @@ namespace v {
 		vkCmdSetViewport(cmd, 0, 1, &v);
 		vkCmdSetScissor(cmd, 0, 1, &s);
 		{
-			
+
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &light->getLightDescriptorSet(currentFrame), 0, nullptr);
@@ -81,8 +85,10 @@ namespace v {
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &terrain->getDescriptorSet(currentFrame), 0, nullptr);
 			terrain->draw(cmd);
 
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &gameobjects.at(0)->getDescriptorSet(currentFrame), 0, nullptr);
-			gameobjects.at(0)->model->draw(cmd, pipelineLayout, currentFrame, true);
+			for (int i = 0; i < gameobjects.size(); i++) {
+				vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &gameobjects.at(i)->getDescriptorSet(currentFrame), 0, nullptr);
+				gameobjects.at(i)->model->draw(cmd, pipelineLayout, currentFrame, true);
+			}
 
 		}
 
@@ -111,12 +117,24 @@ namespace v {
 
 		const std::string vert = "shaders/vsmVert.spv";
 		const std::string frag = "shaders/vsmFrag.spv";
-		
+
 		ConfigInfo configinfo{};
 		Pipeline::defaultPipelineConfigInfo(configinfo);
 
 		configinfo.pipelineLayout = pipelineLayout;
 		configinfo.renderPass = renderPass;
+
+		configinfo.depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		configinfo.depthStencil.depthTestEnable = VK_FALSE;
+		configinfo.depthStencil.depthWriteEnable = VK_FALSE;
+		configinfo.depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+		configinfo.depthStencil.depthBoundsTestEnable = VK_FALSE;
+		configinfo.depthStencil.stencilTestEnable = VK_FALSE;
+
+		configinfo.multisampling.rasterizationSamples = device.getMSAASampleCountFlag();
+		configinfo.multisampling.sampleShadingEnable = VK_TRUE;
+		configinfo.multisampling.minSampleShading = .2f;
+
 
 		/*vertexinput*/
 		VkVertexInputBindingDescription bindingDescription{};
@@ -148,46 +166,59 @@ namespace v {
 	}
 
 
-
-	void VSM_RenderSystem::createShadowmapDescriptorSets( VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool) {
-
-		std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32_t>(SwapChain::MAX_FRAMES_IN_FLIGHT);
-		allocInfo.pSetLayouts = layouts.data();
-
-		shadowMapVSM.descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-		if (vkAllocateDescriptorSets(device.getLogicalDevice(), &allocInfo, shadowMapVSM.descriptorSets.data()) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
-
-		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-
-
-			VkDescriptorImageInfo shadowInfo{};     //shadowmap
-			shadowInfo.imageLayout =  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			shadowInfo.imageView = shadowMapVSM.colorView;
-			shadowInfo.sampler = shadowMapVSM.sampler;
-
-
-			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
-
-			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = shadowMapVSM.descriptorSets[i];
-			descriptorWrites[0].dstBinding = 9;
-			descriptorWrites[0].dstArrayElement = 0;
-			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descriptorWrites[0].descriptorCount = 1;
-			descriptorWrites[0].pImageInfo = &shadowInfo;
-
-			vkUpdateDescriptorSets(device.getLogicalDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-		}
-	}
-
 	void VSM_RenderSystem::createShadowmapResources() {
+
+		shadowMapVSM.mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(SHADOWMAP_DIM, SHADOWMAP_DIM)))) + 1;
+
+		/*msaa color*/
+		VkImageCreateInfo MSAAimageInfo{};
+		MSAAimageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		MSAAimageInfo.imageType = VK_IMAGE_TYPE_2D;
+		MSAAimageInfo.extent.width = SHADOWMAP_DIM;
+		MSAAimageInfo.extent.height = SHADOWMAP_DIM;
+		MSAAimageInfo.extent.depth = 1;
+		MSAAimageInfo.mipLevels = 1;
+		MSAAimageInfo.arrayLayers = 1;
+		MSAAimageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		MSAAimageInfo.format = VK_FORMAT_R32G32_SFLOAT;
+		MSAAimageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		MSAAimageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		MSAAimageInfo.samples = device.getMSAASampleCountFlag();
+		MSAAimageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		if (vkCreateImage(device.getLogicalDevice(), &MSAAimageInfo, nullptr, &shadowMapVSM.MSAAcolorImage) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image!");
+		}
+		VkMemoryRequirements MSAAmemRequirements;
+		vkGetImageMemoryRequirements(device.getLogicalDevice(), shadowMapVSM.MSAAcolorImage, &MSAAmemRequirements);
+
+		VkMemoryAllocateInfo MSAAallocInfo{};
+		MSAAallocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		MSAAallocInfo.allocationSize = MSAAmemRequirements.size;
+		MSAAallocInfo.memoryTypeIndex = device.findMemoryType(MSAAmemRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		if (vkAllocateMemory(device.getLogicalDevice(), &MSAAallocInfo, nullptr, &shadowMapVSM.MSAAcolorMem) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate image memory!");
+		}
+
+		vkBindImageMemory(device.getLogicalDevice(), shadowMapVSM.MSAAcolorImage, shadowMapVSM.MSAAcolorMem, 0);
+
+		VkImageViewCreateInfo MSAAviewInfo{};
+		MSAAviewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		MSAAviewInfo.image = shadowMapVSM.MSAAcolorImage;
+		MSAAviewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		MSAAviewInfo.format = VK_FORMAT_R32G32_SFLOAT;
+		MSAAviewInfo.subresourceRange = {};
+		MSAAviewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		MSAAviewInfo.subresourceRange.baseMipLevel = 0;
+		MSAAviewInfo.subresourceRange.levelCount = 1;
+		MSAAviewInfo.subresourceRange.baseArrayLayer = 0;
+		MSAAviewInfo.subresourceRange.layerCount = 1;
+
+		if (vkCreateImageView(device.getLogicalDevice(), &MSAAviewInfo, nullptr, &shadowMapVSM.MSAAcolorView) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create texture image view!");
+		}
+
+
 
 		/*color*/
 		VkImageCreateInfo imageInfo{};
@@ -196,14 +227,14 @@ namespace v {
 		imageInfo.extent.width = SHADOWMAP_DIM;
 		imageInfo.extent.height = SHADOWMAP_DIM;
 		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = 1;
+		imageInfo.mipLevels = 1; //shadowMapVSM.mipLevels;
 		imageInfo.arrayLayers = 1;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.format = VK_FORMAT_R32G32_SFLOAT;//VK_FORMAT_D32_SFLOAT_S8_UINT;                               
-		imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;  //
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;   /////////////
+		imageInfo.format = VK_FORMAT_R32G32_SFLOAT;
+
+		imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT; //VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT; 
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		if (vkCreateImage(device.getLogicalDevice(), &imageInfo, nullptr, &shadowMapVSM.colorImage) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image!");
@@ -222,15 +253,17 @@ namespace v {
 
 		vkBindImageMemory(device.getLogicalDevice(), shadowMapVSM.colorImage, shadowMapVSM.colorMem, 0);
 
+
+
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewInfo.image = shadowMapVSM.colorImage;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;   
-		viewInfo.format = VK_FORMAT_R32G32_SFLOAT;//VK_FORMAT_D32_SFLOAT_S8_UINT;              
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.format = VK_FORMAT_R32G32_SFLOAT;
 		viewInfo.subresourceRange = {};
 		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		viewInfo.subresourceRange.baseMipLevel = 0;
-		viewInfo.subresourceRange.levelCount = 1;
+		viewInfo.subresourceRange.levelCount = 1; //shadowMapVSM.mipLevels;
 		viewInfo.subresourceRange.baseArrayLayer = 0;
 		viewInfo.subresourceRange.layerCount = 1;
 
@@ -240,12 +273,17 @@ namespace v {
 
 
 		/*framebuffer*/
-		
+		std::array<VkImageView, 2> attachments = {
+				shadowMapVSM.MSAAcolorView,
+				shadowMapVSM.colorView
+		};
+
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		//framebufferInfo.flags = VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT;
 		framebufferInfo.renderPass = renderPass;
-		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = &shadowMapVSM.colorView;
+		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		framebufferInfo.pAttachments = attachments.data();
 		framebufferInfo.width = SHADOWMAP_DIM;
 		framebufferInfo.height = SHADOWMAP_DIM;
 		framebufferInfo.layers = 1;
@@ -264,46 +302,64 @@ namespace v {
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = VK_FILTER_LINEAR;
 		samplerInfo.minFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		samplerInfo.maxAnisotropy = 1.0f;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_TRUE;
-		samplerInfo.compareOp = VK_COMPARE_OP_LESS;
-		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = 200.0f;
+
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.minLod = 0.0f; // Optional
+		samplerInfo.maxLod = static_cast<float>(1); //shadowMapVSM.mipLevels
+		samplerInfo.mipLodBias = 0.0f; // Optional
+
 
 		if (vkCreateSampler(device.getLogicalDevice(), &samplerInfo, nullptr, &shadowMapVSM.sampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}
 	}
 
+
 	void VSM_RenderSystem::createShadowRenderPass() {
 
-		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = VK_FORMAT_R32G32_SFLOAT;   //format;
-		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; 
-		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;  
-		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		VkAttachmentDescription MSAAcolorAttachment{};
+		MSAAcolorAttachment.format = VK_FORMAT_R32G32_SFLOAT;   //format;
+		MSAAcolorAttachment.samples = device.getMSAASampleCountFlag();
+		MSAAcolorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		MSAAcolorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		MSAAcolorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		MSAAcolorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		MSAAcolorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		MSAAcolorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;// VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-		
+		VkAttachmentDescription colorAttachmentResolve{};
+		colorAttachmentResolve.format = VK_FORMAT_R32G32_SFLOAT;
+		colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;//VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
 		VkAttachmentReference colorAttachmentRef{};
 		colorAttachmentRef.attachment = 0;
 		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	
+		VkAttachmentReference colorAttachmentResolveRef{};
+		colorAttachmentResolveRef.attachment = 1;
+		colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+
 		VkSubpassDescription subpassVSM{};
 		subpassVSM.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpassVSM.colorAttachmentCount = 1;
 		subpassVSM.pColorAttachments = &colorAttachmentRef;
+		subpassVSM.pResolveAttachments = &colorAttachmentResolveRef;
 
 		VkSubpassDependency dependencyVSM{};
 		dependencyVSM.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -312,18 +368,58 @@ namespace v {
 		dependencyVSM.srcAccessMask = 0;
 		dependencyVSM.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		dependencyVSM.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		
+
+
+		std::array<VkAttachmentDescription, 2> attachments = { MSAAcolorAttachment, colorAttachmentResolve };
 		VkRenderPassCreateInfo renderPassInfoVSM{};
 		renderPassInfoVSM.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfoVSM.attachmentCount = 1;
-		renderPassInfoVSM.pAttachments = &colorAttachment;
+		renderPassInfoVSM.attachmentCount = static_cast<uint32_t>(attachments.size());
+		renderPassInfoVSM.pAttachments = attachments.data();
 		renderPassInfoVSM.subpassCount = 1;
 		renderPassInfoVSM.pSubpasses = &subpassVSM;
 		renderPassInfoVSM.dependencyCount = 1;
 		renderPassInfoVSM.pDependencies = &dependencyVSM;
-		
+
 		if (vkCreateRenderPass(device.getLogicalDevice(), &renderPassInfoVSM, nullptr, &renderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");
+		}
+	}
+
+	void VSM_RenderSystem::createShadowmapDescriptorSets(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool) {
+
+		std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = descriptorPool;
+		allocInfo.descriptorSetCount = static_cast<uint32_t>(SwapChain::MAX_FRAMES_IN_FLIGHT);
+		allocInfo.pSetLayouts = layouts.data();
+
+		shadowMapVSM.descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+		if (vkAllocateDescriptorSets(device.getLogicalDevice(), &allocInfo, shadowMapVSM.descriptorSets.data()) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate descriptor sets!");
+		}
+
+		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+
+
+			VkDescriptorImageInfo shadowInfo{};     //shadowmap
+			shadowInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			shadowInfo.imageView = shadowMapVSM.colorView;
+			shadowInfo.sampler = shadowMapVSM.sampler;
+
+
+			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+
+			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[0].dstSet = shadowMapVSM.descriptorSets[i];
+			descriptorWrites[0].dstBinding = 9;
+			descriptorWrites[0].dstArrayElement = 0;
+			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[0].descriptorCount = 1;
+			descriptorWrites[0].pImageInfo = &shadowInfo;
+
+			vkUpdateDescriptorSets(device.getLogicalDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
 		}
 	}
 }

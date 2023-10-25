@@ -46,75 +46,6 @@ layout(location = 9) in vec3 inPos;
 layout(location = 0) out vec4 outColor;
 
 
-
-const mat4 biasMat = mat4( 
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0 
-);
-
-
-float chebyshevUpperBound(vec4 fposLightSpace, float distance) {
-    vec2 moments = texture(VSMshadowSampler, fposLightSpace.xy).rg;
- 
-    if (distance <= moments.x)
-        return 1.0;
-    float variance = moments.y - (moments.x * moments.x);
-    variance = max(variance, 0.00002);
-    float d = distance - moments.x;
-    float p_max = variance / (variance + d * d);
-    return p_max;
-}
-
-
-float ShadowCalculation(vec4 fposLightSpace, vec3 normal, vec3 lightDir)
-{
-    vec3 projCoords = fposLightSpace.xyz / fposLightSpace.w;
-    projCoords.xy = projCoords.xy * 0.5 + 0.5;
-   
-    float bias = 0.0;
-    //if(PushConstant.acneRemoved == 1){
-         bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);  
-    //}
-    projCoords.z -= bias * 0.1;
-
-    float shadow = texture(shadowSampler, projCoords.xyz).r;
-
-  
-    if(shadow == 0.0f){
-         return 0.3f;
-    }
-    else
-         return 1.0f;
-}  
-
-
-float CascadeCalculation()
-{
-    uint cascadeIndex = 0;
-	for(uint i = 0; i < 3; i++) {
-		if(viewPos.z < u.cascadeSplits[i]) {	
-			cascadeIndex = i + 1;
-		}
-	}
-    vec4 shadowCoord = (biasMat * u.cascadeViewProjMat[cascadeIndex]) * vec4(worldPos, 1.0);	
-
-	float shadow = 1.0;
-	float bias = 0.005;
-
-	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
-		float dist = texture(cascadeShadowSampler, vec3(shadowCoord.st, cascadeIndex)).r;
-		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias) {
-			shadow = 0.3;
-		}
-	}
-	return shadow;
-
-}
-
-
-
 void main() {
 
     vec3 normal = texture(normalMap, fragTexCoord).rgb;   
@@ -140,29 +71,6 @@ void main() {
 
     /*Shadow*/
     float shadow = 1.0;
-
-    if(p.cascade == 1){
-
-        shadow = CascadeCalculation();
-
-    }
-    else{
-
-        if(p.vsm == 1){
-            float distance = fragPosLightSpace.z / fragPosLightSpace.w;
-            shadow = chebyshevUpperBound(fragPosLightSpace, distance);
-        }
-         else if(p.esm == 1){
-            float distance = fragPosLightSpace.z / fragPosLightSpace.w;
-            shadow = ShadowCalculation(fragPosLightSpace, normal,lightDir);
-            shadow = clamp( exp( 10.0f * ( shadow - distance ) ), 0.0, 1.0 );
-        }
-        else{
-            shadow = ShadowCalculation(fragPosLightSpace, normal,lightDir);
-        }
-    }
-
-    
    
     outColor = vec4(shadow * color.rgb,  color.a );
     

@@ -4,7 +4,7 @@
 
 namespace v {
 
-    TerrainRenderSystem::TerrainRenderSystem(Device& device, VkRenderPass renderPass,  std::vector<VkDescriptorSetLayout> setLayouts) : device(device){
+    TerrainRenderSystem::TerrainRenderSystem(Device& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts) : device(device) {
         createPipelineLayout(setLayouts);
         createPipeline(renderPass);
     }
@@ -50,6 +50,10 @@ namespace v {
         configinfo.pipelineLayout = pipelineLayout;
         configinfo.renderPass = renderPass;
 
+        configinfo.multisampling.rasterizationSamples = device.getMSAASampleCountFlag();
+        configinfo.multisampling.sampleShadingEnable = VK_TRUE;
+        configinfo.multisampling.minSampleShading = .2f;
+
         VkVertexInputAttributeDescription attrPos{};
         attrPos.binding = 0;
         attrPos.location = 0;
@@ -76,24 +80,24 @@ namespace v {
         configinfo.vertexInputInfo.pVertexAttributeDescriptions = configinfo.attributeDescriptions.data();
 
 
-       
+
 
         pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
     }
 
 
-    void TerrainRenderSystem::renderTerrain(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderInfo){
+    void TerrainRenderSystem::renderTerrain(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderInfo) {
 
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
-        
+
         renderInfo.gui.displayNormalmap == true ? pushConstants[0] = 1 : pushConstants[0] = 0;
         renderInfo.gui.cascade == true ? pushConstants[1] = 1 : pushConstants[1] = 0;
         renderInfo.gui.vsm == true ? pushConstants[2] = 1 : pushConstants[2] = 0;
         renderInfo.gui.esm == true ? pushConstants[3] = 1 : pushConstants[3] = 0;
         renderInfo.gui.cascadecolor == true ? pushConstants[4] = 1 : pushConstants[4] = 0;
         vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstants), pushConstants.data());
-        
+
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderInfo.camera->getDescriptorSet(currentFrame), 0, nullptr);
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &renderInfo.light->getLightDescriptorSet(currentFrame), 0, nullptr);
@@ -104,6 +108,9 @@ namespace v {
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 5, 1, &renderInfo.cascadeLightSpaceMx, 0, nullptr);
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 6, 1, &renderInfo.vsmShadowmap, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 7, 1, &renderInfo.esmShadowmap, 0, nullptr);
+
+
         //modelmx
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &renderInfo.terrain->getDescriptorSet(currentFrame), 0, nullptr);
 

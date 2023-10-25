@@ -13,7 +13,7 @@
 namespace v {
 
 	struct SimpleShadowmap {
-		bool vsm ;
+		bool vsm;
 
 		VkImage image;
 		VkDeviceMemory mem;
@@ -26,14 +26,14 @@ namespace v {
 		std::vector<VkDescriptorSet> descriptorSets;
 		std::unique_ptr<Pipeline> pipeline;
 	};
-	#define SHADOWMAP_DIM 10000
+#define SHADOWMAP_DIM 2000
 
 	class OffScreenRenderSystem {
 	private:
 
 		Device& device;
 
-		
+
 		VkPipelineLayout pipelineLayout;
 
 		void createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayouts);
@@ -44,27 +44,27 @@ namespace v {
 		/*shadowmap*/
 		SimpleShadowmap shadowMap;
 		SimpleShadowmap shadowMapVSM;
-		
-		
+
+
 
 		void createShadowRenderPasses();
 		void createShadowmapResources(SimpleShadowmap& sm);
 
 		void createShadowmapDescriptorSets(SimpleShadowmap& sm, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool);
 
-		
+
 
 	public:
 
 		OffScreenRenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkDescriptorSetLayout shadowLayout, VkDescriptorPool pool);
 		~OffScreenRenderSystem();
 
-		
-	    void renderGameObjects(VkCommandBuffer& cmd, int currentFrame, bool vsm, std::unique_ptr<Light> const& light, std::unordered_map<unsigned int, std::unique_ptr<GameObject>> &gameobjects, std::unique_ptr<Terrain> const& terrain);
+
+		void renderGameObjects(VkCommandBuffer& cmd, int currentFrame, bool vsm, std::unique_ptr<Light> const& light, std::unordered_map<unsigned int, std::unique_ptr<GameObject>>& gameobjects, std::unique_ptr<Terrain> const& terrain);
 
 
 		VkDescriptorSet& getShadowmapDescriptorSet(int i) {
-			return shadowMap.descriptorSets[i];	
+			return shadowMap.descriptorSets[i];
 		}
 	};
 }

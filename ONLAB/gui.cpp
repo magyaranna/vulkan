@@ -14,7 +14,7 @@
 
 namespace v {
 
-    Gui::Gui(Window& window, Device& device, SwapChain& swapchain,  VkDescriptorPool pool) {
+    Gui::Gui(Window& window, Device& device, SwapChain& swapchain, VkDescriptorPool pool) {
 
         ImGui::CreateContext();
 
@@ -32,7 +32,7 @@ namespace v {
         info.Device = device.getLogicalDevice();
         info.PhysicalDevice = device.getPhysicalDevice();
         info.ImageCount = swapchain.MAX_FRAMES_IN_FLIGHT;
-        info.MsaaSamples = VK_SAMPLE_COUNT_1_BIT;
+        info.MsaaSamples = device.getMSAASampleCountFlag();
         ImGui_ImplVulkan_Init(&info);
 
         VkCommandBuffer commandBuffer = Helper::beginSingleTimeCommands(device);
@@ -58,10 +58,10 @@ namespace v {
         ImGui::NewFrame();
 
 
-        
+
         ImGui::Checkbox("display normalmap", &displayNormalmap);
         ImGui::Checkbox("spin", &spin);
-        
+
         ImGui::Checkbox("cascade", &cascade);
         ImGui::Checkbox("csm color", &cascadecolor);
         ImGui::Checkbox("vsm", &vsm);
@@ -73,18 +73,21 @@ namespace v {
         static float slider_f = 0.5f;
         static int slider_i = 50;
 
-        static float x = 0.0f, y = -0.2f, z = -0.054f;
+
+
+        glm::vec3 dir = light.getDir();
+        static float x = dir.x, y = dir.y, z = dir.z;
 
         ImGui::Text("");
 
-        ImGui::Text("Light direction: %f %f %f", x, y, z);
+        ImGui::Text("Light direction: %f %f", x, z);
 
 
         ImGui::SliderFloat("x (-1 -> 1)", &x, -1.0f, 1.0f, "%.3f", flags);
-        ImGui::SliderFloat("y (-1 -> 1)", &y, -1.0f, 1.0f, "%.3f", flags);
+        // ImGui::SliderFloat("y (-1 -> 1)", &y, -1.0f, 1.0f, "%.3f", flags);
         ImGui::SliderFloat("z (-1 -> 1)", &z, -1.0f, 1.0f, "%.3f", flags);
 
-        light.setDirection(glm::vec3(x, y, z));
+        light.setDirection(glm::vec3(x, -1, z));
 
 
         //ImGui::ShowDemoWindow();

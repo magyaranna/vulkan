@@ -16,5 +16,8 @@ C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/cascade.frag -o shaders/cascadeFrag
 C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/vsm.vert -o shaders/vsmVert.spv
 C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/vsm.frag -o shaders/vsmFrag.spv
 
+C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/esm.vert -o shaders/esmVert.spv
+C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/esm.frag -o shaders/esmFrag.spv
+
 
 pause

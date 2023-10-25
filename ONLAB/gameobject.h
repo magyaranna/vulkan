@@ -25,28 +25,28 @@ namespace v {
 
 	class GameObject {
 	private:
-		
+
 
 		Device& device;
-		
-		
+
+
 		glm::vec3 offset = glm::vec3(0.0f);
 		glm::vec3 scale;
 
 		unsigned int id;
-	
+
 		std::vector<VkBuffer> modelMxUniform;
 		std::vector<VkDeviceMemory> uniformBuffersMemory;
-		
+
 		std::vector<VkDescriptorSet> descriptorSets;
-		
+
 
 		void createUniformBuffers();
 		void createDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
-	
+
 	public:
-		
-		GameObject(unsigned int id,  Device& device,glm::vec3 scale,VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
+
+		GameObject(unsigned int id, Device& device, glm::vec3 scale, glm::vec3 o, VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
 		~GameObject();
 
 		std::shared_ptr<Model> model{};
@@ -54,9 +54,9 @@ namespace v {
 		struct UniformBufferObject {
 			glm::mat4 modelmx;
 		};
-		
+
 		void updateUniformBuffer(uint32_t currentImage, bool spin);
-		
+
 		/*getters*/
 		VkBuffer getUniformBuffers(size_t i) { return modelMxUniform[i]; }
 		VkDescriptorSet& getDescriptorSet(int i) {

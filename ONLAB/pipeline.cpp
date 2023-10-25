@@ -8,8 +8,8 @@
 
 namespace v {
 
-    Pipeline::Pipeline(Device& device, const std::string& vert, const std::string& frag,   ConfigInfo& configInfo)
-        : device{ device }{
+    Pipeline::Pipeline(Device& device, const std::string& vert, const std::string& frag, ConfigInfo& configInfo)
+        : device{ device } {
 
         createGraphicsPipeline(vert, frag, configInfo);
     }
@@ -30,8 +30,8 @@ namespace v {
 
 
     void Pipeline::createGraphicsPipeline(const std::string& vert, const std::string& frag, ConfigInfo& configInfo) {
-       
-        
+
+
         assert(configInfo.pipelineLayout != VK_NULL_HANDLE && "no pipelinelayout ");
         assert(configInfo.renderPass != VK_NULL_HANDLE && "no renderapss");
 
@@ -58,7 +58,7 @@ namespace v {
 
         VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-        
+
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineInfo.stageCount = 2;
@@ -76,40 +76,40 @@ namespace v {
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-       if (vkCreateGraphicsPipelines(device.getLogicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(device.getLogicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
-      
-       
+
+
         vkDestroyShaderModule(device.getLogicalDevice(), fragShaderModule, nullptr);
         vkDestroyShaderModule(device.getLogicalDevice(), vertShaderModule, nullptr);
     }
-    
+
 
     void Pipeline::defaultPipelineConfigInfo(ConfigInfo& configInfo) {
-        
-       /*shader stages*/
+
+        /*shader stages*/
 
 
 
 
-        /*vertexinput info*/   
+         /*vertexinput info*/
         configInfo.bindingDescriptions = Vertex::getBindingDescription();
         configInfo.attributeDescriptions = Vertex::getAttributeDescriptions();
 
         configInfo.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        
+
         configInfo.vertexInputInfo.vertexBindingDescriptionCount = 1;
         configInfo.vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(configInfo.attributeDescriptions.size());
         configInfo.vertexInputInfo.pVertexBindingDescriptions = &configInfo.bindingDescriptions;
         configInfo.vertexInputInfo.pVertexAttributeDescriptions = configInfo.attributeDescriptions.data();
-        
+
 
         configInfo.inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
         configInfo.inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         configInfo.inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-        
+
         configInfo.viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         configInfo.viewportState.viewportCount = 1;
         configInfo.viewportState.scissorCount = 1;
@@ -118,27 +118,27 @@ namespace v {
             VK_DYNAMIC_STATE_VIEWPORT,
             VK_DYNAMIC_STATE_SCISSOR
         };
-        
+
         configInfo.dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         configInfo.dynamicState.dynamicStateCount = static_cast<uint32_t>(configInfo.dynamicStates.size());
         configInfo.dynamicState.pDynamicStates = configInfo.dynamicStates.data();
 
-        
+
         configInfo.rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         configInfo.rasterizer.depthClampEnable = VK_FALSE;
         configInfo.rasterizer.rasterizerDiscardEnable = VK_FALSE;
         configInfo.rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-        configInfo.rasterizer.lineWidth = 1.0f; 
+        configInfo.rasterizer.lineWidth = 1.0f;
         configInfo.rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;                      /**/
         configInfo.rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;           /**/
         configInfo.rasterizer.depthBiasEnable = VK_FALSE;
 
-        
+
         configInfo.multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         configInfo.multisampling.sampleShadingEnable = VK_FALSE;
         configInfo.multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-        
+
         configInfo.depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
         configInfo.depthStencil.depthTestEnable = VK_TRUE;
         configInfo.depthStencil.depthWriteEnable = VK_TRUE;
@@ -150,7 +150,7 @@ namespace v {
         //configInfo.colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         //configInfo.colorBlendAttachment.blendEnable = VK_FALSE;
 
-        
+
         configInfo.colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         configInfo.colorBlendAttachment.blendEnable = VK_TRUE;
 
@@ -161,7 +161,7 @@ namespace v {
         configInfo.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
         configInfo.colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
         /*opt*/
-        
+
         configInfo.colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         configInfo.colorBlending.logicOpEnable = VK_FALSE;
 
@@ -200,6 +200,6 @@ namespace v {
         return shaderModule;
     }
 
-   
+
 
 }

@@ -5,23 +5,23 @@
 namespace v {
 
 
-    GameObject::GameObject(unsigned int id, Device& device, glm::vec3 s, VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool) : id(id),  device{ device } {
+    GameObject::GameObject(unsigned int id, Device& device, glm::vec3 s, glm::vec3 o, VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool) : id(id), device{ device } {
         scale = s;
-
+        offset = o;
         createUniformBuffers();
 
         createDescriptorSets(descriptorLayout, descriptorPool);
-    
+
     }
-	GameObject::~GameObject() {
-		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-			vkDestroyBuffer(device.getLogicalDevice(), modelMxUniform[i], nullptr);
-			vkFreeMemory(device.getLogicalDevice(), uniformBuffersMemory[i], nullptr);
-		}
-	}
+    GameObject::~GameObject() {
+        for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+            vkDestroyBuffer(device.getLogicalDevice(), modelMxUniform[i], nullptr);
+            vkFreeMemory(device.getLogicalDevice(), uniformBuffersMemory[i], nullptr);
+        }
+    }
 
 
-  
+
     void GameObject::createUniformBuffers() {
         VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
@@ -29,12 +29,12 @@ namespace v {
         uniformBuffersMemory.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
 
         for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-            Helper::createBuffer(device,bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, modelMxUniform[i], uniformBuffersMemory[i]);
+            Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, modelMxUniform[i], uniformBuffersMemory[i]);
 
         }
     }
 
-   
+
 
 
     void GameObject::updateUniformBuffer(uint32_t currentFrame, bool spin) {
@@ -60,7 +60,7 @@ namespace v {
 
 
 
-   
+
     void GameObject::createDescriptorSets(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool) {
         std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
         VkDescriptorSetAllocateInfo allocInfo{};
@@ -75,12 +75,12 @@ namespace v {
         }
 
         for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-           
+
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = modelMxUniform[i];
             bufferInfo.offset = 0;
             bufferInfo.range = sizeof(UniformBufferObject);   //M
-         
+
             std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
 
             descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -96,5 +96,5 @@ namespace v {
         }
     }
 
-  
+
 }

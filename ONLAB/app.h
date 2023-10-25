@@ -18,6 +18,7 @@
 #include "terrain_render_system.h"
 #include "cascadeshadow_render_system.h"
 #include "vsm_render_system.h"
+#include "esm_render_system.h"
 
 #include "descriptors.h"
 
@@ -32,7 +33,7 @@ namespace v {
     const std::string MODEL_PATH = "models/viking_room.obj";
     const std::string TEXTURE_PATH = "textures/viking_room.png";
     const std::string TEXTURE_PATH_R = "textures/r.png";
-    
+
 
     const std::string MODEL_PATH1 = "models/barrel.obj";
     const std::string TEXTURE_PATH1 = "textures/barrel.png";
@@ -62,23 +63,23 @@ namespace v {
         std::unique_ptr<Camera> camera;
 
         std::unique_ptr<Terrain> terrain;
-        
-       
-    
-       // std::vector<GameObject*> gameobjects = {};
+
+
+
+        // std::vector<GameObject*> gameobjects = {};
         std::unordered_map<unsigned int, std::unique_ptr<GameObject>> gameobjects;
-     
+
         static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
     public:
 
-       
+
         App();
         ~App();
         App(const App&) = delete;
         App& operator=(const App&) = delete;
 
-        
+
         void run();
 
     };

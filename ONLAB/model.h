@@ -53,9 +53,9 @@ namespace v {
 		void loadModel(VkDescriptorSetLayout layout, VkDescriptorPool pool);
 
 	public:
-		Model(Device& device,  const std::string MODEL_PATH, VkDescriptorSetLayout layout, VkDescriptorPool pool);
+		Model(Device& device, const std::string MODEL_PATH, VkDescriptorSetLayout layout, VkDescriptorPool pool);
 		~Model();
-		
+
 		void draw(VkCommandBuffer commandBuffer, VkPipelineLayout layout, int currentframe, bool shadow);
 	};
 

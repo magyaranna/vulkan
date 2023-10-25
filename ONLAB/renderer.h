@@ -20,7 +20,7 @@ namespace v {
 		std::vector<VkCommandBuffer> commandBuffers;
 
 		uint32_t currentImageIndex;
-		
+
 
 		void createCommandBuffers();
 
@@ -35,7 +35,7 @@ namespace v {
 		~Renderer();
 
 		bool isFrameStarted = false;
-		int currentFrameIndex =  0 ;
+		int currentFrameIndex = 0;
 		std::unique_ptr<SwapChain> swapchain;
 
 
@@ -43,7 +43,7 @@ namespace v {
 		void endFrame();
 
 		void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
-		
+
 		void endRenderPass(VkCommandBuffer commandBuffer);
 
 	};

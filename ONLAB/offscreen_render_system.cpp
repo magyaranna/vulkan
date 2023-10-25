@@ -11,12 +11,12 @@ namespace v {
 		/*VSM*/
 		//createShadowmapResources(shadowMapVSM, VK_FORMAT_D32_SFLOAT_S8_UINT);
 		//createShadowmapDescriptorSets(shadowMapVSM, shadowLayout, pool);
-		
+
 		/*sima*/
 		//VkFormat depthFormat = Helper::findDepthFormat(device);
 		createShadowmapResources(shadowMap);
 		createShadowmapDescriptorSets(shadowMap, shadowLayout, pool);
-		
+
 		createPipelineLayout(setLayouts);
 		//createPipeline(shadowMapVSM, true);
 		createPipeline(shadowMap, false);
@@ -38,7 +38,7 @@ namespace v {
 			vkDestroyRenderPass(device.getLogicalDevice(), shadowMapVSM.renderPass, nullptr);
 			vkDestroySampler(device.getLogicalDevice(), shadowMapVSM.sampler, nullptr);
 		}
-		
+
 
 
 		vkDestroyPipelineLayout(device.getLogicalDevice(), pipelineLayout, nullptr);
@@ -46,17 +46,17 @@ namespace v {
 
 
 	void OffScreenRenderSystem::renderGameObjects(VkCommandBuffer& cmd, int currentFrame, bool vsm, std::unique_ptr<Light> const& light, std::unordered_map<unsigned int,
-		std::unique_ptr<GameObject>>& gameobjects, std::unique_ptr<Terrain> const& terrain) {
+		std::unique_ptr<GameObject>>&gameobjects, std::unique_ptr<Terrain> const& terrain) {
 
 
 		VkRenderPassBeginInfo shadowRenderPassInfo = {};
 		shadowRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		
+
 		shadowRenderPassInfo.renderPass = shadowMap.renderPass;
 		shadowRenderPassInfo.framebuffer = shadowMap.frameBuffer;
-		
 
-		
+
+
 
 		shadowRenderPassInfo.renderArea.offset = { 0, 0 };
 
@@ -88,7 +88,7 @@ namespace v {
 
 
 		{
-			
+
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowMap.pipeline->getGraphicsPipeline());
 
 
@@ -97,13 +97,15 @@ namespace v {
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &terrain->getDescriptorSet(currentFrame), 0, nullptr);
 			terrain->draw(cmd);
 
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &gameobjects.at(0)->getDescriptorSet(currentFrame), 0, nullptr);
-			gameobjects.at(0)->model->draw(cmd, pipelineLayout, currentFrame, true);
+			for (int i = 0; i < gameobjects.size(); i++) {
+				vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &gameobjects.at(i)->getDescriptorSet(currentFrame), 0, nullptr);
+				gameobjects.at(i)->model->draw(cmd, pipelineLayout, currentFrame, true);
+			}
 
 		}
-		
+
 		vkCmdEndRenderPass(cmd);
-		
+
 	}
 
 
@@ -112,7 +114,7 @@ namespace v {
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-		std::vector<VkDescriptorSetLayout> layouts = setLayouts;  
+		std::vector<VkDescriptorSetLayout> layouts = setLayouts;
 		pipelineLayoutInfo.setLayoutCount = layouts.size();
 		pipelineLayoutInfo.pSetLayouts = layouts.data();
 
@@ -135,14 +137,14 @@ namespace v {
 
 		const std::string vert = "shaders/shadowVert.spv";
 		const std::string frag = "shaders/shadowFrag.spv";
-		
+
 		ConfigInfo configinfo{};
 		Pipeline::defaultPipelineConfigInfo(configinfo);
 
 		configinfo.pipelineLayout = pipelineLayout;
 		configinfo.renderPass = sm.renderPass;
 
-		/*vertexinput*/ 
+		/*vertexinput*/
 		VkVertexInputBindingDescription bindingDescription{};
 		bindingDescription.binding = 0;
 		bindingDescription.stride = sizeof(glm::vec3);
@@ -159,7 +161,7 @@ namespace v {
 		attributeDescriptions.push_back(attrPos);
 
 		configinfo.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		configinfo.bindingDescriptions = Vertex::getBindingDescription();        
+		configinfo.bindingDescriptions = Vertex::getBindingDescription();
 
 		configinfo.attributeDescriptions = attributeDescriptions;
 		configinfo.vertexInputInfo.vertexBindingDescriptionCount = 1;
@@ -278,7 +280,7 @@ namespace v {
 		if (vkCreateFramebuffer(device.getLogicalDevice(), &framebufferInfo, nullptr, &sm.frameBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create framebuffer!");
 		}
-		
+
 
 		/*sampler*/
 		VkPhysicalDeviceProperties properties{};
@@ -295,7 +297,7 @@ namespace v {
 		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_TRUE;
+		samplerInfo.compareEnable = VK_FALSE;              //mert nem sampler2dshadow
 		samplerInfo.compareOp = VK_COMPARE_OP_LESS;
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 200.0f;
