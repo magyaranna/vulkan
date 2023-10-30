@@ -87,6 +87,9 @@
     <ClCompile Include="esm_render_system.cpp">
       <Filter>Source Files\render</Filter>
     </ClCompile>
+    <ClCompile Include="blur_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.h">
@@ -164,6 +167,9 @@
     <ClInclude Include="esm_render_system.h">
       <Filter>Source Files\render</Filter>
     </ClInclude>
+    <ClInclude Include="blur_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat">
@@ -200,6 +206,12 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\esm.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\gaussblur.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\gaussblur.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

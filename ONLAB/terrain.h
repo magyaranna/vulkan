@@ -22,17 +22,6 @@
 
 namespace v {
 
-	/*struct TerrainVertex {
-		glm::vec3 pos;
-		glm::vec3 normal;
-		
-		static VkVertexInputBindingDescription getBindingDescription();
-		static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
-
-		bool operator==(const TerrainVertex& other) const;
-	};*/
-
-
 
 	class Terrain {
 	private:

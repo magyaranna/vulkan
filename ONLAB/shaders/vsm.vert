@@ -18,9 +18,12 @@ layout(set = 1, binding = 3) uniform UniformBufferLight {
 layout(location = 0) in vec3 inPosition;	
 
 layout(location = 0) out vec4 fragPosLightSpace;
+layout(location = 1) out vec4 viewPos;
 
 void main() {
 
 	gl_Position = light.proj * light.view * ubo.model * vec4(inPosition, 1.0);   
 	fragPosLightSpace = gl_Position;
+	viewPos = light.view * ubo.model * vec4(inPosition, 1.0); 
 }
+

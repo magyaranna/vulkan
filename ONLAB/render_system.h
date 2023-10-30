@@ -19,7 +19,7 @@ namespace v {
 
 		//std::unique_ptr<Gui> gui; 
 
-		std::array<int, 5> pushConstants;
+		std::array<int, 8> pushConstants;
 
 
 		void createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayouts);
@@ -32,7 +32,7 @@ namespace v {
 
 		void renderGameObjects(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderinfo);
 
-		std::array<int, 5> getPushConstants() { return pushConstants; }
+		//std::array<int, 6> getPushConstants() { return pushConstants; }
 		void setPushConstants(int i, int value) { pushConstants[i] = value; }
 	};
 }

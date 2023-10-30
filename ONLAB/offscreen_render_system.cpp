@@ -8,18 +8,13 @@ namespace v {
 	OffScreenRenderSystem::OffScreenRenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkDescriptorSetLayout shadowLayout, VkDescriptorPool pool) : device(device) {
 
 		createShadowRenderPasses();
-		/*VSM*/
-		//createShadowmapResources(shadowMapVSM, VK_FORMAT_D32_SFLOAT_S8_UINT);
-		//createShadowmapDescriptorSets(shadowMapVSM, shadowLayout, pool);
 
-		/*sima*/
-		//VkFormat depthFormat = Helper::findDepthFormat(device);
-		createShadowmapResources(shadowMap);
-		createShadowmapDescriptorSets(shadowMap, shadowLayout, pool);
+		createShadowmapResources();
+		createShadowmapDescriptorSets(shadowLayout, pool);
 
 		createPipelineLayout(setLayouts);
-		//createPipeline(shadowMapVSM, true);
-		createPipeline(shadowMap, false);
+
+		createPipeline();
 	}
 	OffScreenRenderSystem::~OffScreenRenderSystem() {
 		{
@@ -27,32 +22,22 @@ namespace v {
 			vkDestroyImage(device.getLogicalDevice(), shadowMap.image, nullptr);
 			vkFreeMemory(device.getLogicalDevice(), shadowMap.mem, nullptr);
 			vkDestroyFramebuffer(device.getLogicalDevice(), shadowMap.frameBuffer, nullptr);
-			vkDestroyRenderPass(device.getLogicalDevice(), shadowMap.renderPass, nullptr);
+			vkDestroyRenderPass(device.getLogicalDevice(), renderPass, nullptr);
 			vkDestroySampler(device.getLogicalDevice(), shadowMap.sampler, nullptr);
 		}
-		{
-			vkDestroyImageView(device.getLogicalDevice(), shadowMapVSM.view, nullptr);
-			vkDestroyImage(device.getLogicalDevice(), shadowMapVSM.image, nullptr);
-			vkFreeMemory(device.getLogicalDevice(), shadowMapVSM.mem, nullptr);
-			vkDestroyFramebuffer(device.getLogicalDevice(), shadowMapVSM.frameBuffer, nullptr);
-			vkDestroyRenderPass(device.getLogicalDevice(), shadowMapVSM.renderPass, nullptr);
-			vkDestroySampler(device.getLogicalDevice(), shadowMapVSM.sampler, nullptr);
-		}
-
-
 
 		vkDestroyPipelineLayout(device.getLogicalDevice(), pipelineLayout, nullptr);
 	}
 
 
-	void OffScreenRenderSystem::renderGameObjects(VkCommandBuffer& cmd, int currentFrame, bool vsm, std::unique_ptr<Light> const& light, std::unordered_map<unsigned int,
+	void OffScreenRenderSystem::renderGameObjects(VkCommandBuffer& cmd, int currentFrame, bool peterpanning, std::unique_ptr<Light> const& light, std::unordered_map<unsigned int,
 		std::unique_ptr<GameObject>>&gameobjects, std::unique_ptr<Terrain> const& terrain) {
 
 
 		VkRenderPassBeginInfo shadowRenderPassInfo = {};
 		shadowRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
-		shadowRenderPassInfo.renderPass = shadowMap.renderPass;
+		shadowRenderPassInfo.renderPass = renderPass;
 		shadowRenderPassInfo.framebuffer = shadowMap.frameBuffer;
 
 
@@ -88,9 +73,10 @@ namespace v {
 
 
 		{
-
-			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, shadowMap.pipeline->getGraphicsPipeline());
-
+			if (!peterpanning)
+				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
+			else
+				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_peterpanning->getGraphicsPipeline());
 
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &light->getLightDescriptorSet(currentFrame), 0, nullptr);
 
@@ -118,14 +104,6 @@ namespace v {
 		pipelineLayoutInfo.setLayoutCount = layouts.size();
 		pipelineLayoutInfo.pSetLayouts = layouts.data();
 
-		VkPushConstantRange pushConstantRange = {};
-		pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-		pushConstantRange.offset = 0;
-		pushConstantRange.size = sizeof(pushConstants);
-
-		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-		pipelineLayoutInfo.pushConstantRangeCount = 1;
-
 
 		if (vkCreatePipelineLayout(device.getLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout!");
@@ -133,7 +111,7 @@ namespace v {
 
 
 	}
-	void OffScreenRenderSystem::createPipeline(SimpleShadowmap& sm, bool vsm) {
+	void OffScreenRenderSystem::createPipeline() {
 
 		const std::string vert = "shaders/shadowVert.spv";
 		const std::string frag = "shaders/shadowFrag.spv";
@@ -142,7 +120,9 @@ namespace v {
 		Pipeline::defaultPipelineConfigInfo(configinfo);
 
 		configinfo.pipelineLayout = pipelineLayout;
-		configinfo.renderPass = sm.renderPass;
+		configinfo.renderPass = renderPass;
+
+		//configinfo.rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
 
 		/*vertexinput*/
 		VkVertexInputBindingDescription bindingDescription{};
@@ -170,12 +150,15 @@ namespace v {
 		configinfo.vertexInputInfo.pVertexAttributeDescriptions = configinfo.attributeDescriptions.data();
 		/**/
 
-		sm.pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
+		pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
+
+		configinfo.rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
+		pipeline_peterpanning = std::make_unique<Pipeline>(device, vert, frag, configinfo);
 	}
 
 
 
-	void OffScreenRenderSystem::createShadowmapDescriptorSets(SimpleShadowmap& sm, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool) {
+	void OffScreenRenderSystem::createShadowmapDescriptorSets(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool) {
 
 		std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
 		VkDescriptorSetAllocateInfo allocInfo{};
@@ -184,8 +167,8 @@ namespace v {
 		allocInfo.descriptorSetCount = static_cast<uint32_t>(SwapChain::MAX_FRAMES_IN_FLIGHT);
 		allocInfo.pSetLayouts = layouts.data();
 
-		sm.descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-		if (vkAllocateDescriptorSets(device.getLogicalDevice(), &allocInfo, sm.descriptorSets.data()) != VK_SUCCESS) {
+		shadowMap.descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+		if (vkAllocateDescriptorSets(device.getLogicalDevice(), &allocInfo, shadowMap.descriptorSets.data()) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
 
@@ -194,14 +177,14 @@ namespace v {
 
 			VkDescriptorImageInfo shadowInfo{};     //shadowmap
 			shadowInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			shadowInfo.imageView = sm.view;
-			shadowInfo.sampler = sm.sampler;
+			shadowInfo.imageView = shadowMap.view;
+			shadowInfo.sampler = shadowMap.sampler;
 
 
 			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
 
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = sm.descriptorSets[i];
+			descriptorWrites[0].dstSet = shadowMap.descriptorSets[i];
 			descriptorWrites[0].dstBinding = 4;
 			descriptorWrites[0].dstArrayElement = 0;
 			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -213,7 +196,7 @@ namespace v {
 		}
 	}
 
-	void OffScreenRenderSystem::createShadowmapResources(SimpleShadowmap& sm) {
+	void OffScreenRenderSystem::createShadowmapResources() {
 
 		/*image + mem*/
 		VkFormat depthFormat = Helper::findDepthFormat(device);
@@ -230,29 +213,29 @@ namespace v {
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.format = depthFormat;                               /////////////////
 		imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		if (vkCreateImage(device.getLogicalDevice(), &imageInfo, nullptr, &sm.image) != VK_SUCCESS) {
+		if (vkCreateImage(device.getLogicalDevice(), &imageInfo, nullptr, &shadowMap.image) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image!");
 		}
 		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(device.getLogicalDevice(), sm.image, &memRequirements);
+		vkGetImageMemoryRequirements(device.getLogicalDevice(), shadowMap.image, &memRequirements);
 
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = device.findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		if (vkAllocateMemory(device.getLogicalDevice(), &allocInfo, nullptr, &sm.mem) != VK_SUCCESS) {
+		if (vkAllocateMemory(device.getLogicalDevice(), &allocInfo, nullptr, &shadowMap.mem) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate image memory!");
 		}
 
-		vkBindImageMemory(device.getLogicalDevice(), sm.image, sm.mem, 0);
+		vkBindImageMemory(device.getLogicalDevice(), shadowMap.image, shadowMap.mem, 0);
 
 
 
 		/*view*/
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = sm.image;
+		viewInfo.image = shadowMap.image;
 		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;   /**/
 		viewInfo.format = depthFormat;               /**/
 		viewInfo.subresourceRange = {};
@@ -262,22 +245,22 @@ namespace v {
 		viewInfo.subresourceRange.baseArrayLayer = 0;
 		viewInfo.subresourceRange.layerCount = 1;
 
-		if (vkCreateImageView(device.getLogicalDevice(), &viewInfo, nullptr, &sm.view) != VK_SUCCESS) {
+		if (vkCreateImageView(device.getLogicalDevice(), &viewInfo, nullptr, &shadowMap.view) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture image view!");
 		}
 
 		/*framebuffer*/
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = sm.renderPass;
+		framebufferInfo.renderPass = renderPass;
 		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = &sm.view;
+		framebufferInfo.pAttachments = &shadowMap.view;
 		framebufferInfo.width = SHADOWMAP_DIM;
 		framebufferInfo.height = SHADOWMAP_DIM;
 		framebufferInfo.layers = 1;
 
 
-		if (vkCreateFramebuffer(device.getLogicalDevice(), &framebufferInfo, nullptr, &sm.frameBuffer) != VK_SUCCESS) {
+		if (vkCreateFramebuffer(device.getLogicalDevice(), &framebufferInfo, nullptr, &shadowMap.frameBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create framebuffer!");
 		}
 
@@ -303,7 +286,7 @@ namespace v {
 		samplerInfo.maxLod = 200.0f;
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
-		if (vkCreateSampler(device.getLogicalDevice(), &samplerInfo, nullptr, &sm.sampler) != VK_SUCCESS) {
+		if (vkCreateSampler(device.getLogicalDevice(), &samplerInfo, nullptr, &shadowMap.sampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}
 	}
@@ -359,7 +342,7 @@ namespace v {
 		renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
 		renderPassInfo.pDependencies = dependencies.data();
 
-		if (vkCreateRenderPass(device.getLogicalDevice(), &renderPassInfo, nullptr, &shadowMap.renderPass) != VK_SUCCESS) {
+		if (vkCreateRenderPass(device.getLogicalDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");
 		}
 

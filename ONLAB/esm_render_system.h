@@ -26,7 +26,7 @@ namespace v {
 
 		std::vector<VkDescriptorSet> descriptorSets;
 	};
-#define SHADOWMAP_DIM 2000
+#define SHADOWMAP_DIM 3000
 
 	class ESM_RenderSystem {
 	private:

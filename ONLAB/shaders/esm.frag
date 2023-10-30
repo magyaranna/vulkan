@@ -1,33 +1,25 @@
 #version 450
 
 
-layout(set = 2, binding = 4) uniform sampler2D shadowSampler;
+layout(set = 0, binding = 4) uniform sampler2D shadowSampler;
 
 
-layout(location = 0) in vec4 lightspacePos;
-layout(location = 0) out vec2 outMoment;
+layout (location = 0) in vec2 uv;
+
+layout (location = 0) out vec2 outFragColor;
 
 
 void main()
 {             
-
-	vec2 texelSize = 1.0 / textureSize(shadowSampler, 0);
 	
-    float depth = lightspacePos.z / lightspacePos.w;
+	//vec4 x =  clamp(exp( 80.0f *  textureGatherOffset(shadowSampler, uv, ivec2(0,0), 0) ), 0.0, 1.0);
 
-	vec3 projCoords = lightspacePos.xyz / lightspacePos.w;
-    projCoords.xy = projCoords.xy * 0.5 + 0.5;
+//	x +=  clamp(exp( 80.0f *  textureGatherOffset(shadowSampler, uv, ivec2(0,2), 0) ), 0.0, 1.0);
+///	x +=  clamp(exp( 80.0f *  textureGatherOffset(shadowSampler, uv, ivec2(2,0), 0) ), 0.0, 1.0);
+//	x +=  clamp(exp( 80.0f *  textureGatherOffset(shadowSampler, uv, ivec2(2,2), 0) ), 0.0, 1.0);
 
-	/*
-	float x = clamp(exp( -1000.0f * (depth - texture(shadowSampler, projCoords.xy + vec2(0,0) * texelSize ).r ))  , 0.0, 1.0);
-	x += clamp(exp( -1000.0f * (depth - texture(shadowSampler, projCoords.xy + vec2(0,1) * texelSize ).r ))  , 0.0, 1.0);
-	x += clamp(exp( -1000.0f * (depth - texture(shadowSampler, projCoords.xy + vec2(1,0) * texelSize ).r ))  , 0.0, 1.0);
-	x += clamp(exp( -1000.0f * (depth - texture(shadowSampler, projCoords.xy + vec2(1,1) * texelSize ).r ))  , 0.0, 1.0);
-
-	x /= 4.0f;
-	*/
-	float x = clamp(exp( -1001.0f * (depth - texture(shadowSampler, projCoords.xy ).r))  , 0.0, 1.0);
-
+//	x /= 16.0f;
+	vec4 x =  clamp(exp( -1.2f * textureGatherOffset(shadowSampler, uv, ivec2(0,0), 0) ), 0.0, 1.0);
     
-    outMoment = vec2( x , projCoords);
+    outFragColor = vec2( x.x , 0.0);
 } 

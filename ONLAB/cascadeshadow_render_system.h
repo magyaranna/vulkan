@@ -35,7 +35,7 @@ namespace v {
 	};
 
 #define SHADOW_MAP_CASCADE_COUNT 4
-#define SHADOWMAP_DIM 2000
+#define SHADOWMAP_DIM 3000
 
 	class CascadeShadowRenderSystem {
 	private:

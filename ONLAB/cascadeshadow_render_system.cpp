@@ -211,7 +211,7 @@ namespace v {
 	//https://developer.nvidia.com/gpugems/gpugems3/part-ii-light-and-shadows/chapter-10-parallel-split-shadow-maps-programmable-gpus
 
 	//https://johanmedestrom.wordpress.com/2016/03/18/opengl-cascaded-shadow-maps/
-/*
+
 	void CascadeShadowRenderSystem::updateCascades(std::unique_ptr<Camera> const& camera, glm::vec3 dir) {
 		float cascadeSplits[SHADOW_MAP_CASCADE_COUNT];
 
@@ -283,7 +283,7 @@ namespace v {
 			glm::vec3 maxExtents = glm::vec3(radius);
 			glm::vec3 minExtents = -maxExtents;
 
-			glm::vec3 lightDir = dir;
+			glm::vec3 lightDir = glm::normalize(dir);
 			glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
 			glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
 
@@ -294,21 +294,21 @@ namespace v {
 
 			lastSplitDist = cascadeSplits[i];
 		}
-	} */
-
-	void CascadeShadowRenderSystem::updateCascades(std::unique_ptr<Camera> const& camera, glm::vec3 dir) {
-
-		//std::vector<float> shadowCascadeLevels{ camera->getFarClip() / 50.0f, camera->getFarClip() / 25.0f, camera->getFarClip() / 2.0f };
-		std::vector<float> shadowCascadeLevels{ 20.0f, 50.0f, 80.0f };
-		std::vector<glm::mat4> viewproj = getLightSpaceMatrices(camera, dir, shadowCascadeLevels);
-
-		for (int i = 0; i < 4; i++) {
-			if (i == 3) cascades[i].splitDepth = camera->getFarClip();
-			else cascades[i].splitDepth = shadowCascadeLevels[i];
-			cascades[i].viewProjMx = viewproj[i];
-		}
-
 	}
+
+	/*	void CascadeShadowRenderSystem::updateCascades(std::unique_ptr<Camera> const& camera, glm::vec3 dir) {
+
+			//std::vector<float> shadowCascadeLevels{ camera->getFarClip() / 50.0f, camera->getFarClip() / 25.0f, camera->getFarClip() / 2.0f };
+			std::vector<float> shadowCascadeLevels{ 20.0f, 50.0f, 80.0f };
+			std::vector<glm::mat4> viewproj = getLightSpaceMatrices(camera, dir, shadowCascadeLevels);
+
+			for (int i = 0; i < 4; i++) {
+				if(i == 3) cascades[i].splitDepth = camera->getFarClip();
+				else cascades[i].splitDepth = shadowCascadeLevels[i];
+				cascades[i].viewProjMx = viewproj[i];
+			}
+
+		}*/
 
 	std::vector<glm::mat4> CascadeShadowRenderSystem::getLightSpaceMatrices(std::unique_ptr<Camera> const& camera, glm::vec3 dir, std::vector<float> shadowCascadeLevels)
 	{
@@ -357,6 +357,8 @@ namespace v {
 		}
 		center /= frustumCorners.size();
 
+		dir = glm::normalize(dir);
+
 		const auto lightView = glm::lookAt(center - dir, center, glm::vec3(0.0f, 1.0f, 0.0f));    //* (farPlane - nearPlane)
 
 		float minX = std::numeric_limits<float>::max();
@@ -395,8 +397,8 @@ namespace v {
 			maxZ *= zMult;
 		}
 
-		//const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ- minZ);
 		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+		//const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, 0.0f, maxZ - minZ);
 		return lightProjection * lightView;
 	}
 

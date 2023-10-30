@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="blur_render_system.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="cascadeshadow_render_system.cpp" />
     <ClCompile Include="descriptors.cpp" />
@@ -168,6 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
+    <ClInclude Include="blur_render_system.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="cascadeshadow_render_system.h" />
     <ClInclude Include="descriptors.h" />
@@ -199,6 +201,8 @@
     <None Include="shaders\cascade.vert" />
     <None Include="shaders\esm.frag" />
     <None Include="shaders\esm.vert" />
+    <None Include="shaders\gaussblur.frag" />
+    <None Include="shaders\gaussblur.vert" />
     <None Include="shaders\scene.frag" />
     <None Include="shaders\scene.vert" />
     <None Include="shaders\shadow.frag" />

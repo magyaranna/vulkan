@@ -30,7 +30,7 @@ namespace v {
 		Device& device;
 
 
-		glm::vec3 offset = glm::vec3(0.0f);
+		glm::vec3 offset;
 		glm::vec3 scale;
 
 		unsigned int id;

@@ -33,7 +33,7 @@ namespace v {
 		std::vector<VkDescriptorSet> descriptorSets;
 	};
 
-#define SHADOWMAP_DIM 1000
+#define SHADOWMAP_DIM 4000
 
 	class VSM_RenderSystem {
 	private:
@@ -70,5 +70,7 @@ namespace v {
 		VkDescriptorSet& getShadowmapDescriptorSet(int i) {
 			return shadowMapVSM.descriptorSets[i];
 		}
+
+		VSMShadowmap getShadowMapVSM() { return shadowMapVSM; };
 	};
 }

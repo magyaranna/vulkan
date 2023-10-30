@@ -17,7 +17,7 @@ namespace v {
 		std::unique_ptr<Pipeline> pipeline;
 		VkPipelineLayout pipelineLayout;
 
-		std::array<int, 5> pushConstants;
+		std::array<int, 8> pushConstants;
 
 		//VkRenderPass renderPass;
 

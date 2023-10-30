@@ -1,25 +1,12 @@
 #version 450
 
-layout(set = 0,  binding = 1) uniform UniformBufferObject {	
-    mat4 model;  
+#extension GL_ARB_separate_shader_objects : enable
 
-} ubo;
-	
+layout(location = 0) out vec2 uv;
 
-layout( set = 1, binding = 2) uniform UniformBufferLightVP {	
-   mat4 view;
-   mat4 proj;
-} light;
 
-layout(set = 1, binding = 3) uniform UniformBufferLight {
-    vec4 pos;
-} lbo;
-
-layout(location = 0) in vec3 inPosition;	
-layout(location = 0) out vec4 lightspacePos;
-
-void main() {
-
-	gl_Position = light.proj * light.view * ubo.model * vec4(inPosition, 1.0);   
-	lightspacePos =  gl_Position;
-}
+void main() 
+{
+	uv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+	gl_Position = vec4(uv * 2.0f - 1.0f, 0.0f, 1.0f);
+} 

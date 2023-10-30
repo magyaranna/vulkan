@@ -45,7 +45,7 @@ namespace v {
 
 
 		int width, height, nChannels;
-		unsigned char* data = stbi_load("textures/mo.png",
+		unsigned char* data = stbi_load("textures/mo2.png",
 			&width, &height, &nChannels,
 			0);
 

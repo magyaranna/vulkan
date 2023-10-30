@@ -19,5 +19,9 @@ C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/vsm.frag -o shaders/vsmFrag.spv
 C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/esm.vert -o shaders/esmVert.spv
 C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/esm.frag -o shaders/esmFrag.spv
 
+C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/gaussBlur.vert -o shaders/gaussBlurVert.spv
+C:\VulkanSDK\1.3.239.0\Bin\glslc.exe shaders/gaussBlur.frag -o shaders/gaussBlurFrag.spv
+
+
 
 pause

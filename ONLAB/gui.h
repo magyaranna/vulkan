@@ -12,14 +12,19 @@ namespace v {
     public:
 
         //bool displayShadowmap = false;
+        bool pcf = false;
+        bool bias = false;
         bool displayNormalmap = false;
         bool spin = false;
         //bool acneRemoved = true;
         //bool sponza = false;
         bool cascade = false;
         bool cascadecolor = false;
+        bool cascadePCF = false;
         bool vsm = false;
         bool esm = false;
+
+        bool peterPanning = false;
 
 
         Gui(Window& window, Device& device, SwapChain& swapchain, VkDescriptorPool pool);

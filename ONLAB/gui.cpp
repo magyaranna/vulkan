@@ -56,14 +56,24 @@ namespace v {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.FrameRounding = 8.0f;
 
+        ImGui::StyleColorsClassic();
 
-
+        ImGui::SeparatorText("General");
+        ImGui::Checkbox("pcf", &pcf);
+        ImGui::Checkbox("acne removed", &bias);
+        ImGui::Checkbox("peter panning", &peterPanning);
         ImGui::Checkbox("display normalmap", &displayNormalmap);
         ImGui::Checkbox("spin", &spin);
 
+        ImGui::SeparatorText("CSM");
         ImGui::Checkbox("cascade", &cascade);
         ImGui::Checkbox("csm color", &cascadecolor);
+        ImGui::Checkbox("cascadePCF", &cascadePCF);
+
+        ImGui::SeparatorText("");
         ImGui::Checkbox("vsm", &vsm);
         ImGui::Checkbox("esm", &esm);
 
@@ -83,9 +93,9 @@ namespace v {
         ImGui::Text("Light direction: %f %f", x, z);
 
 
-        ImGui::SliderFloat("x (-1 -> 1)", &x, -1.0f, 1.0f, "%.3f", flags);
+        ImGui::SliderFloat("X", &x, -1.0f, 1.0f, "%.3f", flags);
         // ImGui::SliderFloat("y (-1 -> 1)", &y, -1.0f, 1.0f, "%.3f", flags);
-        ImGui::SliderFloat("z (-1 -> 1)", &z, -1.0f, 1.0f, "%.3f", flags);
+        ImGui::SliderFloat("Z", &z, -1.0f, 1.0f, "%.3f", flags);
 
         light.setDirection(glm::vec3(x, -1, z));
 

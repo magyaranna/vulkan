@@ -19,6 +19,7 @@
 #include "cascadeshadow_render_system.h"
 #include "vsm_render_system.h"
 #include "esm_render_system.h"
+#include "blur_render_system.h"
 
 #include "descriptors.h"
 

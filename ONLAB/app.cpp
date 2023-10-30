@@ -37,7 +37,7 @@ namespace v {
         std::unique_ptr<DescriptorSetLayout> gameobject_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, gameobject_bindings.bindings);
 
         //std::unique_ptr<GameObject> obj = std::make_unique<GameObject>(0, device, glm::vec3(0.02f, 0.02f, 0.02f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, -3.0f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
         //std::unique_ptr<GameObject> obj2 = std::make_unique<GameObject>(0, device, glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(10.0f, 2.0f, 2.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
 
         obj1->model = sponza_model;
@@ -96,6 +96,11 @@ namespace v {
             .addBinding(10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
         std::unique_ptr<DescriptorSetLayout> esmShadowmap_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, esmShadowMap_Binding.bindings);
 
+        /*Blured VSM*/
+        Binding bluredVSM_Binding = Binding()
+            .addBinding(11, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+        std::unique_ptr<DescriptorSetLayout> bluredVsm_descriptorLayouts = std::make_unique<DescriptorSetLayout>(device, bluredVSM_Binding.bindings);
+
 
         descriptorLayouts.push_back(camera_descriptorLayout->getDescriptorSetLayout());   //VP
         descriptorLayouts.push_back(model_descriptorLayout->getDescriptorSetLayout());    //Tesxtures
@@ -104,8 +109,10 @@ namespace v {
         descriptorLayouts.push_back(shadow_descriptorLayout->getDescriptorSetLayout());  //shadowmap
         descriptorLayouts.push_back(cascadeShadowmap_descriptorLayout->getDescriptorSetLayout());  //cascadeShadowmap
         descriptorLayouts.push_back(cascadeUniform_descriptorLayout->getDescriptorSetLayout());  //cascadeuniform->mx, depth
-        descriptorLayouts.push_back(vsmShadowmap_descriptorLayout->getDescriptorSetLayout());  //vsm shadowmap
+        // descriptorLayouts.push_back(vsmShadowmap_descriptorLayout->getDescriptorSetLayout());  //vsm shadowmap
+        descriptorLayouts.push_back(bluredVsm_descriptorLayouts->getDescriptorSetLayout());  // blured vsm
         descriptorLayouts.push_back(esmShadowmap_descriptorLayout->getDescriptorSetLayout());  //esm shadowmap
+
 
 
         RenderSystem renderSystem{ device, renderer.swapchain->getRenderPass(),descriptorLayouts };
@@ -117,13 +124,10 @@ namespace v {
             descriptorLayouts[5], descriptorPool.getDescriptorPool(), light->getPos() };
 
         VSM_RenderSystem vsmRenderSystem{ device,{ descriptorLayouts[2], descriptorLayouts[3] } ,vsmShadowmap_descriptorLayout->getDescriptorSetLayout() ,descriptorPool.getDescriptorPool() };
-        
+        ESM_RenderSystem esmRenderSystem{ device,{ descriptorLayouts[4] } ,esmShadowmap_descriptorLayout->getDescriptorSetLayout() ,descriptorPool.getDescriptorPool() };
 
-        //Helper::transitionImageLayout(device, shadowMapVSM.colorImage, VK_FORMAT_R32G32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, shadowMapVSM.mipLevels);
-        //Helper::generateMipmaps(device, shadowMapVSM.colorImage, VK_FORMAT_R32G32_SFLOAT, SHADOWMAP_DIM, SHADOWMAP_DIM, shadowMapVSM.mipLevels);   
+        BlurSystem blurSystem{ device, {vsmShadowmap_descriptorLayout->getDescriptorSetLayout()}, vsmShadowmap_descriptorLayout->getDescriptorSetLayout(), bluredVsm_descriptorLayouts->getDescriptorSetLayout(), descriptorPool.getDescriptorPool() };
 
-        
-        ESM_RenderSystem esmRenderSystem{ device,{ descriptorLayouts[2], descriptorLayouts[3] , descriptorLayouts[4] } ,esmShadowmap_descriptorLayout->getDescriptorSetLayout() ,descriptorPool.getDescriptorPool() };
 
         while (!window.shouldClose()) {
             glfwPollEvents();
@@ -154,12 +158,21 @@ namespace v {
                 vkDeviceWaitIdle(device.getLogicalDevice());
 
 
+
+                offscreenRenderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, gui->peterPanning, light, gameobjects, terrain);
+
                 cascadeRenderSystem.renderGameObjects(commandBuffer, gameobjects, terrain, renderer.currentFrameIndex);
 
 
-                offscreenRenderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, gui->vsm, light, gameobjects, terrain);
                 vsmRenderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, light, gameobjects, terrain);
+
+                //Helper::transitionImageLayout(device, vsmRenderSystem.getShadowMapVSM().colorImage, VK_FORMAT_R32G32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, vsmRenderSystem.getShadowMapVSM().mipLevels);
+                //Helper::generateMipmaps(device, vsmRenderSystem.getShadowMapVSM().colorImage, VK_FORMAT_R32G32_SFLOAT, SHADOWMAP_DIM, SHADOWMAP_DIM, vsmRenderSystem.getShadowMapVSM().mipLevels);
+
+                blurSystem.render(commandBuffer, vsmRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex), renderer.currentFrameIndex);
+
                 esmRenderSystem.renderGameObjects(commandBuffer, renderer.currentFrameIndex, light, gameobjects, terrain, offscreenRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex));
+
 
                 renderer.beginSwapChainRenderPass(commandBuffer);
                 {
@@ -169,8 +182,9 @@ namespace v {
                         offscreenRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex),
                         cascadeRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex),
                         cascadeRenderSystem.getMXDescriptorSet(renderer.currentFrameIndex),
-                        vsmRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex),
-                        esmRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex)
+                        blurSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex),
+                        // vsmRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex),
+                         esmRenderSystem.getShadowmapDescriptorSet(renderer.currentFrameIndex)
                     };
 
                     terrainRenderSystem.renderTerrain(commandBuffer, renderer.currentFrameIndex, renderInfo);

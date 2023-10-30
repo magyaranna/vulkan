@@ -72,17 +72,9 @@ namespace v {
 
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &light->getLightDescriptorSet(currentFrame), 0, nullptr);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &shadowmap, 0, nullptr);
 
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &shadowmap, 0, nullptr);
-
-			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &terrain->getDescriptorSet(currentFrame), 0, nullptr);
-			terrain->draw(cmd);
-
-			for (int i = 0; i < gameobjects.size(); i++) {
-				vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &gameobjects.at(i)->getDescriptorSet(currentFrame), 0, nullptr);
-				gameobjects.at(i)->model->draw(cmd, pipelineLayout, currentFrame, true);
-			}
+			vkCmdDraw(cmd, 3, 1, 0, 0);
 
 		}
 
@@ -126,31 +118,17 @@ namespace v {
 		configinfo.depthStencil.depthBoundsTestEnable = VK_FALSE;
 		configinfo.depthStencil.stencilTestEnable = VK_FALSE;
 
+		configinfo.colorBlendAttachment.blendEnable = VK_FALSE;
 
 		/*vertexinput*/
-		VkVertexInputBindingDescription bindingDescription{};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(glm::vec3);
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-		VkVertexInputAttributeDescription attrPos{};
-		attrPos.binding = 0;
-		attrPos.location = 0;
-		attrPos.format = VK_FORMAT_R32G32B32_SFLOAT;
-		attrPos.offset = offsetof(Vertex, pos);
-
-
-		std::vector< VkVertexInputAttributeDescription> attributeDescriptions;
-		attributeDescriptions.push_back(attrPos);
-
 		configinfo.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		configinfo.bindingDescriptions = Vertex::getBindingDescription();
+		configinfo.vertexInputInfo.vertexAttributeDescriptionCount = 0;
+		configinfo.vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+		configinfo.vertexInputInfo.vertexBindingDescriptionCount = 0;
+		configinfo.vertexInputInfo.pVertexBindingDescriptions = nullptr;
 
-		configinfo.attributeDescriptions = attributeDescriptions;
-		configinfo.vertexInputInfo.vertexBindingDescriptionCount = 1;
-		configinfo.vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(configinfo.attributeDescriptions.size());
-		configinfo.vertexInputInfo.pVertexBindingDescriptions = &configinfo.bindingDescriptions;
-		configinfo.vertexInputInfo.pVertexAttributeDescriptions = configinfo.attributeDescriptions.data();
+		configinfo.rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
+		configinfo.rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 		pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
 	}
