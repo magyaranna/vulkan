@@ -64,21 +64,26 @@ namespace v {
         ImGui::SeparatorText("General");
         ImGui::Checkbox("pcf", &pcf);
         ImGui::Checkbox("acne removed", &bias);
-        ImGui::Checkbox("peter panning", &peterPanning);
+        ImGui::Checkbox("cullmode: frontface", &frontface);
         ImGui::Checkbox("display normalmap", &displayNormalmap);
         ImGui::Checkbox("spin", &spin);
 
         ImGui::SeparatorText("CSM");
         ImGui::Checkbox("cascade", &cascade);
         ImGui::Checkbox("csm color", &cascadecolor);
-        ImGui::Checkbox("cascadePCF", &cascadePCF);
+
+        static ImGuiSliderFlags flags = ImGuiSliderFlags_None;
+        ImGui::Text("Split Lambda:");
+        ImGui::SliderFloat(" ", &splitLambda, 0.0f, 1.0f, "%.3f", flags);
+
 
         ImGui::SeparatorText("");
         ImGui::Checkbox("vsm", &vsm);
         ImGui::Checkbox("esm", &esm);
+        ImGui::Checkbox("blur", &blur);
 
         // Sliders
-        static ImGuiSliderFlags flags = ImGuiSliderFlags_None;
+        
 
         static float slider_f = 0.5f;
         static int slider_i = 50;

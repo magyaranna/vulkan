@@ -96,9 +96,8 @@ namespace v {
         renderInfo.gui.vsm == true ? pushConstants[2] = 1 : pushConstants[2] = 0;
         renderInfo.gui.esm == true ? pushConstants[3] = 1 : pushConstants[3] = 0;
         renderInfo.gui.cascadecolor == true ? pushConstants[4] = 1 : pushConstants[4] = 0;
-        renderInfo.gui.cascadePCF == true ? pushConstants[5] = 1 : pushConstants[5] = 0;
-        renderInfo.gui.pcf == true ? pushConstants[6] = 1 : pushConstants[6] = 0;
-        renderInfo.gui.bias == true ? pushConstants[7] = 1 : pushConstants[7] = 0;
+        renderInfo.gui.pcf == true ? pushConstants[5] = 1 : pushConstants[5] = 0;
+        renderInfo.gui.bias == true ? pushConstants[6] = 1 : pushConstants[6] = 0;
         vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstants), pushConstants.data());
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderInfo.camera->getDescriptorSet(currentFrame), 0, nullptr);

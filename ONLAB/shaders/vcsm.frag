@@ -1,7 +1,10 @@
-
 #version 450
 
-layout(set = 0, binding = 0) uniform sampler2D shadowSampler;
+layout(set = 0, binding = 0) uniform sampler2DArray shadowSampler;
+
+layout( push_constant ) uniform PushConstants {
+  uint cascadeIndex;
+} p;
 
 layout(location = 0) in vec2 uv;
 
@@ -22,7 +25,7 @@ vec2 ComputeMoments(float t) {
 
 void main() {
 	
-	float depth = texture(shadowSampler, uv).r; 
+	float depth = texture(shadowSampler, vec3(uv, p.cascadeIndex)).r; 
 	
 	outMoment = ComputeMoments(depth);
 }

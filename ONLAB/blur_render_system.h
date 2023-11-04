@@ -6,19 +6,11 @@
 #include "device.h"
 #include "pipeline.h"
 
+#include "shadowmaps.h"
+
 #include <cassert>
 
 namespace v {
-
-#define SHADOWMAP_DIM 4000
-
-
-	struct FrameBufferResources {
-		VkImage image;
-		VkDeviceMemory mem;
-		VkImageView view;
-		VkFramebuffer frameBuffer;
-	};
 
 
 	class BlurSystem {
@@ -26,54 +18,36 @@ namespace v {
 
 		Device& device;
 
+		
 
-		//VkImage image;
-		//VkDeviceMemory mem;
-		//VkImageView view;
-		//VkFramebuffer frameBuffer;
-		VkSampler sampler;
+		std::unique_ptr<ColorShadowMap> tempShadowMap = nullptr;
+		std::unique_ptr<ColorCascadeShadowMap> tempCascadeShadowMap = nullptr;
 
 
 		VkPipelineLayout pipelineLayout;
+		std::unique_ptr<Pipeline> pipeline;
 
-		std::unique_ptr<Pipeline> pipelineBlurHorz;
-		std::unique_ptr<Pipeline> pipelineBlurVert;
-
-
-		VkRenderPass renderPass;
+		VkPipelineLayout pipelineLayoutCascade;
+		std::unique_ptr<Pipeline> pipelineCascade;
 
 
-		std::vector<VkDescriptorSet> descriptorSetsBlurHorz;
-		std::vector<VkDescriptorSet> descriptorSets;
 
-		FrameBufferResources horizontal_fb;
-		FrameBufferResources vertical_fb;
-
-
-		void createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayouts);
-		void createPipeline();
+		void createPipelineLayouts(std::vector<VkDescriptorSetLayout> setLayouts);
+		void createPipelines(VkRenderPass renderPass);
 
 		std::array<int, 1> pushConstants;
-
-		void createRenderPass();
-		void createFrameBufferResources(FrameBufferResources& fb);
-		void createSampler();
-
-		void createDescriptorSets_BluredH(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool);
-		void createDescriptorSets(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool);
-
+		std::array<int, 2> cascadePushConstants; //blurdir cascadeidx
 
 
 	public:
 
-		BlurSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkDescriptorSetLayout VSMLayout, VkDescriptorSetLayout layout, VkDescriptorPool pool);
+		BlurSystem(Device& device, int binding, std::vector<VkDescriptorSetLayout> setLayouts, VkDescriptorSetLayout blurlayout, VkDescriptorPool pool, VkRenderPass renderPass);
 		~BlurSystem();
 
-		void render(VkCommandBuffer& cmd, VkDescriptorSet image, int index);
+		void render(VkCommandBuffer& cmd, int index, ColorShadowMap& shadowMap, VkDescriptorSet image, VkRenderPass renderPass);
+		void render(VkCommandBuffer& cmd, int index, ColorCascadeShadowMap& shadowMap, VkDescriptorSet image, VkRenderPass renderPass);
 
-		VkDescriptorSet& getShadowmapDescriptorSet(int i) {
-			return descriptorSets[i];
-		}
+		
 
 	};
 }

@@ -13,18 +13,20 @@ namespace v {
 
         //bool displayShadowmap = false;
         bool pcf = false;
-        bool bias = false;
+        bool bias = true;
         bool displayNormalmap = false;
         bool spin = false;
         //bool acneRemoved = true;
         //bool sponza = false;
         bool cascade = false;
         bool cascadecolor = false;
-        bool cascadePCF = false;
+        float splitLambda = 0.2f;
+
         bool vsm = false;
         bool esm = false;
 
-        bool peterPanning = false;
+        bool frontface = false;
+        bool blur = false;
 
 
         Gui(Window& window, Device& device, SwapChain& swapchain, VkDescriptorPool pool);

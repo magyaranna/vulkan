@@ -72,7 +72,7 @@ namespace v {
         DescriptorWriter& writeBuffer();
         DescriptorWriter& writeImage();
 
-       
+        
     };
 
 

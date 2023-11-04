@@ -4,14 +4,14 @@
 
 namespace v {
 
-	Terrain::Terrain(Device& device, glm::vec3 scale, VkDescriptorSetLayout layout, VkDescriptorPool pool) : device(device), scale(scale) {
+	Terrain::Terrain(Device& device, glm::vec3 scale, VkDescriptorSetLayout layout, VkDescriptorSetLayout textLayout , VkDescriptorPool pool) : device(device), scale(scale) {
 		generate();
 		createVertexBuffer();
 		createIndexBuffer();
 
 		createUniformBuffers();
 		createDescriptorSets(layout, pool);
-
+		defaultTextureDescriptorSets = Texture::createDefaultTextureDescriptorSet(device, defaultTexture, textLayout, pool);
 
 	}
 	Terrain::~Terrain() {
@@ -25,6 +25,11 @@ namespace v {
 			vkDestroyBuffer(device.getLogicalDevice(), modelMxUniform[i], nullptr);
 			vkFreeMemory(device.getLogicalDevice(), uniformBuffersMemory[i], nullptr);
 		}
+
+		vkDestroySampler(device.getLogicalDevice(), defaultTexture.sampler, nullptr);
+		vkDestroyImageView(device.getLogicalDevice(), defaultTexture.view, nullptr);
+		vkDestroyImage(device.getLogicalDevice(), defaultTexture.image, nullptr);
+		vkFreeMemory(device.getLogicalDevice(), defaultTexture.mem, nullptr);
 	}
 
 

@@ -1,23 +1,21 @@
 #version 450
 
-//layout(set = 3, binding = 4) uniform sampler2DShadow shadowSampler;
-layout(set = 3, binding = 4) uniform sampler2D shadowSampler;
-layout(set = 4, binding = 7) uniform sampler2DArray  cascadeShadowSampler;
-//layout(set = 6, binding = 9) uniform sampler2D VSMshadowSampler;
-layout(set = 6, binding = 11) uniform sampler2D VSMshadowSampler;
-layout(set = 7, binding = 10) uniform sampler2D ESMshadowSampler;
+layout(set = 3, binding = 0) uniform sampler2D shadowSampler;
+layout(set = 4, binding = 0) uniform sampler2DArray  cascadeShadowSampler;
+layout(set = 6, binding = 0) uniform sampler2D VSMshadowSampler;
+layout(set = 7, binding = 0) uniform sampler2D ESMshadowSampler;
 
-layout(set = 2, binding = 2) uniform UniformBufferLightVP {
+layout(set = 2, binding = 0) uniform UniformBufferLightVP {
     mat4 view;
     mat4 proj;
 } light;
 
-layout(set = 2, binding = 3) uniform UniformBufferLight {
-    vec4 pos;
+layout(set = 2, binding = 1) uniform UniformBufferLight {
+    vec3 pos;
     vec3 dir;
 } lbo;
 
-layout (set = 5, binding = 8) uniform UniformLightSpace {
+layout (set = 5, binding = 5) uniform UniformLightSpace {
 	mat4 cascadeViewProjMat[4];
     vec4 cascadeSplits;
 } u;
@@ -28,56 +26,24 @@ layout( push_constant ) uniform pushConstants {
   int vsm;
   int esm;
   int cascadecolor;
-  int cascadePCF;
   int pcf;
   int bias;
 } p;
 
 
-
-layout(location = 0) in vec3 viewPos;
+layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNormal;
-layout(location = 2) in vec3 inPos;
-layout(location = 3) in vec3 worldPos;
+layout(location = 2) in vec3 worldPos;
+layout(location = 3) in vec3 viewPos;
 
 layout(location = 0) out vec4 outColor;
 
 
-const mat4 biasMat = mat4( 
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0 
-);
-
-
-/*
-float ShadowCalculation(vec4 fposLightSpace, vec3 normal, vec3 lightDir)
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 {
-    vec3 projCoords = fposLightSpace.xyz / fposLightSpace.w;
-    projCoords.xy = projCoords.xy * 0.5 + 0.5;
-
-    {
-     float bias = 0.0;
-     bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005); 
-     projCoords.z -= bias * 0.1;
-    }
-    float shadow = texture(shadowSampler, projCoords.xyz).r;
-
-  
-    if(shadow == 0.0f){
-         return 0.3f;
-    }
-    else
-         return 1.0f;
-}  */
-
-float ShadowCalculation(vec4 fposLightSpace, vec3 normal, vec3 lightDir)
-{
-
     float shadow = 0.0;
 
-    vec3 projCoords = fposLightSpace.xyz / fposLightSpace.w;
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
     
@@ -85,11 +51,6 @@ float ShadowCalculation(vec4 fposLightSpace, vec3 normal, vec3 lightDir)
     if(p.bias == 1){
         bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005) * 0.1; 
     }
-
-    
-    //projCoords.z -= bias * 0.1;
-    
-    float distToLight = texture(shadowSampler, projCoords.xy).r;
 
     if(p.pcf == 1){
                 vec2 texelSize = 1.0 / textureSize(shadowSampler, 0);
@@ -104,6 +65,8 @@ float ShadowCalculation(vec4 fposLightSpace, vec3 normal, vec3 lightDir)
                 shadow /= 9.0;
      }
      else{
+
+        float distToLight = texture(shadowSampler, projCoords.xy).r;
         if (projCoords.z - bias <= distToLight && projCoords.z < 1.0)
             shadow = 1.0;
         
@@ -112,7 +75,6 @@ float ShadowCalculation(vec4 fposLightSpace, vec3 normal, vec3 lightDir)
         
      }
      return shadow;
-
 } 
 
 
@@ -122,42 +84,58 @@ float ShadowCalculation(vec4 fposLightSpace, vec3 normal, vec3 lightDir)
  } 
  
 
-float chebyshevUpperBound( vec4 fragPosLightSpace) {
+float chebyshevUpperBound( vec4 fragPosLightSpace, int index) {    /*VSM*/
 
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords.xy = projCoords.xy * 0.5 + 0.5;
 
-  //  float surfaceDistToLight = length(lbo.pos.xyz - worldPos);
+    if(p.cascade == 1){
 
-    vec2 moments = texture(VSMshadowSampler, projCoords.xy).xy;  //E(x) 
- 
-    if (projCoords.z <= moments.x)
-        return 1.0;
+         vec2 moments = texture(cascadeShadowSampler, vec3(projCoords.st, index)).xy;
 
-    float variance = moments.y - (moments.x * moments.x); //D^2(x)
-    variance = max(variance, 0.0002);
-    float d = projCoords.z - moments.x;
+         if ( fragPosLightSpace.z > -1.0 && fragPosLightSpace.z < 1.0 ) {
+	        if ( fragPosLightSpace.w > 0 && moments.x < fragPosLightSpace.z - 0.000) {
+			     float variance = moments.y - (moments.x * moments.x); 
+                variance = max(variance, 0.0002);
+                float d = projCoords.z - moments.x;
    
-   // float p_max = clamp(variance / (variance + d * d),0.2,0.8);       ///ez
-   // float p_max = variance / (variance + d * d);
+                float p_max = linstep(0.0, 1.0, variance / (variance + d * d ));
 
-   float p_max = linstep(0.0, 1.0, variance / (variance + pow(d * d , 1)));
+                return p_max;
+	        }
+        }
+    }
+    else{
+        vec2 moments = texture(VSMshadowSampler, projCoords.xy).xy;
 
-    return p_max;
+        if (projCoords.z <= moments.x)
+            return 1.0;
+
+        float variance = moments.y - (moments.x * moments.x); 
+        variance = max(variance, 0.0002);
+        float d = projCoords.z - moments.x;
+   
+        float p_max = linstep(0.0, 1.0, variance / (variance + d * d ));
+
+        return p_max;
+    }
+    return 1.0;
 }  
 
 
 
-float cascadeShadowCalculation(uint cascadeIndex, vec2 offset)
+float cascadeShadowCalculation(uint cascadeIndex, vec2 offset, vec3 normal, vec3 lightDir)
 {
-	
     vec4 fragPosLightSpace  =  u.cascadeViewProjMat[cascadeIndex] * vec4(worldPos, 1.0);	
     fragPosLightSpace = fragPosLightSpace / fragPosLightSpace.w;
     
     vec2 projCoords = fragPosLightSpace.xy * 0.5 + 0.5;
     
     float shadow = 1.0;
-	float bias = 0.005;
+	float bias = 0.0;
+    if(p.bias == 1){
+        bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005) * 0.1; 
+    }
 
 	if ( fragPosLightSpace.z > -1.0 && fragPosLightSpace.z < 1.0 ) {
 	    float dist = texture(cascadeShadowSampler, vec3(projCoords.st + offset, cascadeIndex)).r;
@@ -169,7 +147,7 @@ float cascadeShadowCalculation(uint cascadeIndex, vec2 offset)
 	return shadow;
 }
 
-float cascadeFilterPCF(uint cascadeIndex)
+float cascadeFilterPCF(uint cascadeIndex, vec3 normal, vec3 lightDir)
 {
 	ivec2 texDim = textureSize(cascadeShadowSampler, 0).xy;
 	float scale = 0.75;
@@ -182,7 +160,7 @@ float cascadeFilterPCF(uint cascadeIndex)
 	
 	for (int x = -range; x <= range; x++) {
 		for (int y = -range; y <= range; y++) {
-			shadowFactor += cascadeShadowCalculation(cascadeIndex, vec2(dx*x, dy*y));
+			shadowFactor += cascadeShadowCalculation(cascadeIndex, vec2(dx*x, dy*y), normal, lightDir);
 			count++;
 		}
 	}
@@ -196,7 +174,7 @@ void main(){
     vec3 green = vec3(0.416,0.529,0.369);
 
     vec4 fragPosLightSpace = light.proj * light.view * vec4(worldPos,1.0);   
-    vec3 lightDir = normalize(lbo.dir); 
+    vec3 lightDir = normalize(lbo.pos - fragPos);
 
     /*COLOR*/
     vec3 color = vec3(1.0);
@@ -206,11 +184,13 @@ void main(){
        color = green * shading;
     }
 
+
+
+
     /*Shadow*/
     float shadow = 0;
 
-
-	if(p.cascade == 1){
+	if(p.cascade == 1 ){
 
         float depthValue = abs(viewPos.z);
         int cascadeIndex = 3;
@@ -222,14 +202,29 @@ void main(){
                 break;
             }
         }
+        vec4 lightSpacePos = u.cascadeViewProjMat[cascadeIndex] * vec4(worldPos, 1.0);
 
-        if(p.cascadePCF == 1){
-             shadow = cascadeFilterPCF(cascadeIndex);
+        if(p.vsm == 1){
+            shadow = chebyshevUpperBound(lightSpacePos, cascadeIndex);
         }
-        else{
-             shadow = cascadeShadowCalculation(cascadeIndex, vec2(0.0, 0.0));
-        }
+        else if(p.esm == 1){
+            lightSpacePos.z = lightSpacePos.z / lightSpacePos.w;  
 
+            vec3 projCoords = lightSpacePos.xyz / lightSpacePos.w;
+            projCoords.xy = projCoords.xy * 0.5 + 0.5;
+            float e = texture(cascadeShadowSampler, vec3(projCoords.xy , cascadeIndex)).r;
+           
+            shadow = clamp( e * exp( -80.0f * lightSpacePos.z ), 0.2, 1.0);
+        }
+        else{  
+            
+            if(p.pcf == 1){
+                shadow = cascadeFilterPCF(cascadeIndex, normal, lightDir);
+            }
+            else{
+                shadow = cascadeShadowCalculation(cascadeIndex, vec2(0.0, 0.0), normal, lightDir);
+            }
+        }
 
         if(p.cascadecolor == 1){
             switch(cascadeIndex) {
@@ -249,30 +244,27 @@ void main(){
         }
     }
     else{
-
+  
         if(p.vsm == 1){
 
-            shadow = chebyshevUpperBound(fragPosLightSpace);
+            shadow = chebyshevUpperBound(fragPosLightSpace, -1);
         } 
          else if(p.esm == 1){
-            float t = fragPosLightSpace.z / fragPosLightSpace.w;    //d
+            fragPosLightSpace.z = fragPosLightSpace.z / fragPosLightSpace.w;    //d
 
             vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
             projCoords.xy = projCoords.xy * 0.5 + 0.5;
-            float nearestOccluderDepth = texture(ESMshadowSampler, projCoords.xy).r;
+            float x = texture(ESMshadowSampler, projCoords.xy).r;
             
-            shadow = clamp( exp( -80.0f * ( t- nearestOccluderDepth ) ), 0.0, 1.0 );  //e^(-c*(d-z))
-            
+            shadow = clamp( x * exp( -80.0f * fragPosLightSpace.z ), 0.3, 1.0);
         }
         else{
             shadow = ShadowCalculation(fragPosLightSpace, normal,lightDir);
 
-
-           
         }
     }
 
-    outColor = vec4( shadow* color.rgb,1.0 );
+    outColor = vec4(shadow * color.rgb,1.0 );
     
 	
 }

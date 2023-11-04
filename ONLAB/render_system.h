@@ -19,7 +19,7 @@ namespace v {
 
 		//std::unique_ptr<Gui> gui; 
 
-		std::array<int, 8> pushConstants;
+		std::array<int, 7> pushConstants;
 
 
 		void createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayouts);

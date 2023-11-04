@@ -55,7 +55,9 @@ namespace v {
 	void Light::updateLightUniformBuffer(uint32_t currentImage) {
 
 		UniformBufferLight ubl = {};
-		ubl.lightPosition = position;
+
+
+		ubl.lightPosition = position + glm::vec3(dir.x, 0.0, dir.z) * 20.0f;
 		ubl.lightDir = dir;
 
 		void* data;
@@ -118,7 +120,7 @@ namespace v {
 
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[0].dstSet = lightDescriptorSets[i];
-			descriptorWrites[0].dstBinding = 2;
+			descriptorWrites[0].dstBinding = 0;
 			descriptorWrites[0].dstArrayElement = 0;
 			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			descriptorWrites[0].descriptorCount = 1;
@@ -126,7 +128,7 @@ namespace v {
 
 			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[1].dstSet = lightDescriptorSets[i];
-			descriptorWrites[1].dstBinding = 3;
+			descriptorWrites[1].dstBinding = 1;
 			descriptorWrites[1].dstArrayElement = 0;
 			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			descriptorWrites[1].descriptorCount = 1;

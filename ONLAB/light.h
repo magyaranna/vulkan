@@ -21,7 +21,7 @@ namespace v {
 
 		Device& device;
 
-		glm::vec4 position = glm::vec4(0.0f, 50.0f, 0.0f, 1.0f); // glm::vec4(10.0f, 50.0f, 50.0f, 1.0f);
+		glm::vec3 position = glm::vec3(0.0f, 50.0f, 0.0f); // glm::vec4(10.0f, 50.0f, 50.0f, 1.0f);
 		glm::vec3 dir = glm::vec3(-0.5f, -1.0f, -0.5f);
 
 
@@ -50,7 +50,7 @@ namespace v {
 			glm::mat4 proj;
 		};
 		struct UniformBufferLight {
-			glm::vec4 lightPosition;
+			glm::vec3 lightPosition;
 			glm::vec3 lightDir;
 
 			//+ 
@@ -65,7 +65,7 @@ namespace v {
 		/*getters*/
 		VkBuffer getLightUniformBuffer(int i) { return lightUniformBuffers[i]; }
 		VkBuffer getLightVPUniformBuffer(int i) { return lightVPUniformBuffers[i]; }
-		glm::vec4 getPos() { return position; }
+		glm::vec3 getPos() { return position; }
 		glm::vec3 getDir() { return dir; }
 
 		VkDescriptorSet& getLightDescriptorSet(int i) {

@@ -50,13 +50,13 @@ namespace v {
 		void createVertexBuffer(MeshPart& meshpart);
 		void createIndexBuffer(MeshPart& meshpart);
 
-		void loadModel(VkDescriptorSetLayout layout, VkDescriptorPool pool);
+		void loadModel(VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool);
 
 	public:
-		Model(Device& device, const std::string MODEL_PATH, VkDescriptorSetLayout layout, VkDescriptorPool pool);
+		Model(Device& device, const std::string MODEL_PATH, VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool);
 		~Model();
 
-		void draw(VkCommandBuffer commandBuffer, VkPipelineLayout layout, int currentframe, bool shadow);
+		void draw(VkCommandBuffer commandBuffer, VkPipelineLayout layout, int currentframe, bool shadow, int set);
 	};
 
 

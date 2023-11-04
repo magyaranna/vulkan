@@ -17,7 +17,7 @@ namespace v {
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-        std::vector<VkDescriptorSetLayout> layouts = setLayouts;  //globalDescriptorSetLayout, modelDescriptorSetLayout, gameobjDescriptorSetLayout, lightDescriptorSetLayout, shadowmapDescriptorSetLayout ,cascadeShadowmap, cascadeuniform
+        std::vector<VkDescriptorSetLayout> layouts = setLayouts;  //globalDescriptorSetLayout, texture,normalmap, gameobjDescriptorSetLayout, lightDescriptorSetLayout, shadowmapDescriptorSetLayout ,cascadeShadowmap, cascadeuniform
         pipelineLayoutInfo.setLayoutCount = layouts.size();
         pipelineLayoutInfo.pSetLayouts = layouts.data();
 
@@ -76,28 +76,27 @@ namespace v {
         renderinfo.gui.vsm == true ? pushConstants[2] = 1 : pushConstants[2] = 0;
         renderinfo.gui.esm == true ? pushConstants[3] = 1 : pushConstants[3] = 0;
         renderinfo.gui.cascadecolor == true ? pushConstants[4] = 1 : pushConstants[4] = 0;
-        renderinfo.gui.cascadePCF == true ? pushConstants[5] = 1 : pushConstants[5] = 0;
-        renderinfo.gui.pcf == true ? pushConstants[6] = 1 : pushConstants[6] = 0;
-        renderinfo.gui.bias == true ? pushConstants[7] = 1 : pushConstants[7] = 0;
+        renderinfo.gui.pcf == true ? pushConstants[5] = 1 : pushConstants[5] = 0;
+        renderinfo.gui.bias == true ? pushConstants[6] = 1 : pushConstants[6] = 0;
         vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstants), pushConstants.data());
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderinfo.camera->getDescriptorSet(currentFrame), 0, nullptr);
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 3, 1, &renderinfo.light->getLightDescriptorSet(currentFrame), 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 4, 1, &renderinfo.light->getLightDescriptorSet(currentFrame), 0, nullptr);
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 4, 1, &renderinfo.simpleShadowMap, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 5, 1, &renderinfo.simpleShadowMap, 0, nullptr);
 
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 5, 1, &renderinfo.cascadeShadowmap, 0, nullptr);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 6, 1, &renderinfo.cascadeLightSpaceMx, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 6, 1, &renderinfo.cascadeShadowmap, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 7, 1, &renderinfo.cascadeLightSpaceMx, 0, nullptr);
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 7, 1, &renderinfo.vsmShadowmap, 0, nullptr);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 8, 1, &renderinfo.esmShadowmap, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 8, 1, &renderinfo.vsmShadowmap, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 9, 1, &renderinfo.esmShadowmap, 0, nullptr);
 
 
         for (int i = 0; i < renderinfo.gameobjects.size(); i++) {
-            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &renderinfo.gameobjects.at(i)->getDescriptorSet(currentFrame), 0, nullptr);
-            renderinfo.gameobjects.at(i)->model->draw(cmd, pipelineLayout, currentFrame, false);
+            vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 3, 1, &renderinfo.gameobjects.at(i)->getDescriptorSet(currentFrame), 0, nullptr);
+            renderinfo.gameobjects.at(i)->model->draw(cmd, pipelineLayout, currentFrame, false, 1);
         }
 
         renderinfo.gui.renderGui(cmd);

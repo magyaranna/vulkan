@@ -25,8 +25,11 @@
 
 #include "terrain.h"
 
+#include "shadowmaps.h"
+
 
 namespace v {
+
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;

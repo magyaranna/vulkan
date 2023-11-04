@@ -10,10 +10,10 @@
 
 namespace v {
 
-    Model::Model(Device& device, const std::string MODEL_PATH, VkDescriptorSetLayout layout, VkDescriptorPool pool) : device{ device }, MODEL_PATH{ MODEL_PATH }
+    Model::Model(Device& device, const std::string MODEL_PATH, VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool) : device{ device }, MODEL_PATH{ MODEL_PATH }
     {
 
-        loadModel(layout, pool);
+        loadModel(textlayout, normallayout, pool);
         createBuffers();
 
     }
@@ -35,7 +35,7 @@ namespace v {
     }
 
 
-    void Model::draw(VkCommandBuffer commandBuffer, VkPipelineLayout layout, int currentframe, bool shadow) {
+    void Model::draw(VkCommandBuffer commandBuffer, VkPipelineLayout layout, int currentframe, bool shadow, int set) {
 
 
         for (auto& part : meshparts) {
@@ -45,12 +45,17 @@ namespace v {
 
             int id = part.matID;
 
-            if (!shadow && textures[id]->getDescriptorSets().size() != 0) {
+            if (!shadow && textures[id]->getTextureDescriptorSets().size() != 0) {
 
-                textures[id]->bind(commandBuffer, layout, currentframe);
+                textures[id]->bindTexture(commandBuffer, layout, currentframe, set);
+                
+                textures[id]->bindNormalMap(commandBuffer, layout, currentframe, set +1);
 
             }
-
+            else if (shadow && textures[id]->getTextureDescriptorSets().size() != 0 &&set != -1) {
+                textures[id]->bindTexture(commandBuffer, layout, currentframe, set);
+            }
+            
 
             vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
             vkCmdBindIndexBuffer(commandBuffer, part.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
@@ -61,7 +66,7 @@ namespace v {
     }
 
 
-    void Model::loadModel(VkDescriptorSetLayout layout, VkDescriptorPool pool) {
+    void Model::loadModel(VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool) {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
@@ -77,7 +82,7 @@ namespace v {
             std::string opacityMap = "";
             material.alpha_texname != "" ? opacityMap = material.alpha_texname : opacityMap = "";
 
-            textures.push_back(new Texture(device, layout, pool, material.diffuse_texname, material.displacement_texname));
+            textures.push_back(new Texture(device,textlayout, normallayout, pool, material.diffuse_texname, material.displacement_texname));
 
             // textures.emplace_back( device, swapChain,layout, pool, material.diffuse_texname,material.displacement_texname );
         }
@@ -171,8 +176,8 @@ namespace v {
                 T = glm::normalize(T - glm::dot(T, N) * N);
                 B = glm::cross(N, T);
             }
-            if (shape.mesh.material_ids[0] == -1)  meshpart.matID = 0;
-            else { meshpart.matID = shape.mesh.material_ids[0]; }
+
+            meshpart.matID = shape.mesh.material_ids[0]; 
 
             meshparts.push_back(meshpart);
         }

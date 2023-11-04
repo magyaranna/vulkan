@@ -16,6 +16,7 @@ namespace v {
 		Device& device;
 		Instance& instance;
 
+		int currentFrameIndex = 0;
 
 		std::vector<VkCommandBuffer> commandBuffers;
 
@@ -29,14 +30,19 @@ namespace v {
 			return commandBuffers[currentFrameIndex];
 		}
 
+		void createColorRenderPass();
+		void createDepthRenderPass();
+
 	public:
 
 		Renderer(Window& window, Device& device, Instance& instance);
 		~Renderer();
 
 		bool isFrameStarted = false;
-		int currentFrameIndex = 0;
+		
 		std::unique_ptr<SwapChain> swapchain;
+		VkRenderPass colorRenderPass;
+		VkRenderPass depthRenderPass;
 
 
 		VkCommandBuffer beginFrame();
@@ -45,6 +51,8 @@ namespace v {
 		void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
 
 		void endRenderPass(VkCommandBuffer commandBuffer);
+
+		int getFrameIndex() { return currentFrameIndex; }
 
 	};
 }

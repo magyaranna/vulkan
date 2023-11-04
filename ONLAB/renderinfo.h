@@ -23,4 +23,14 @@ namespace v {
         VkDescriptorSet vsmShadowmap;
         VkDescriptorSet esmShadowmap;
     };
+
+    struct OffScreenRenderInfo {
+        VkCommandBuffer& cmd;
+        int currentFrame;
+        VkRenderPass renderPass;
+        std::unique_ptr<Light> const& light;
+        Gui& gui;
+        std::unique_ptr<Terrain> const& terrain;
+        std::unordered_map<unsigned int, std::unique_ptr<GameObject>>& gameobjects;
+    };
 }

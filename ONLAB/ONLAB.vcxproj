@@ -160,6 +160,7 @@
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="render_system.cpp" />
+    <ClCompile Include="shadowmaps.cpp" />
     <ClCompile Include="swapchain.cpp" />
     <ClCompile Include="terrain.cpp" />
     <ClCompile Include="terrain_render_system.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="render_system.h" />
+    <ClInclude Include="shadowmaps.h" />
     <ClInclude Include="swapchain.h" />
     <ClInclude Include="terrain.h" />
     <ClInclude Include="terrain_render_system.h" />
@@ -197,22 +199,22 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />
-    <None Include="shaders\cascade.frag" />
-    <None Include="shaders\cascade.vert" />
+    <None Include="shaders\depthCascade.vert" />
+    <None Include="shaders\ecsm.frag" />
     <None Include="shaders\esm.frag" />
-    <None Include="shaders\esm.vert" />
     <None Include="shaders\gaussblur.frag" />
-    <None Include="shaders\gaussblur.vert" />
+    <None Include="shaders\gaussblur_cascade.frag" />
     <None Include="shaders\scene.frag" />
     <None Include="shaders\scene.vert" />
-    <None Include="shaders\shadow.frag" />
-    <None Include="shaders\shadow.vert" />
+    <None Include="shaders\depth.frag" />
+    <None Include="shaders\depth.vert" />
     <None Include="shaders\terrain.frag" />
     <None Include="shaders\terrain.vert" />
+    <None Include="shaders\vcsm.frag" />
     <None Include="shaders\vsm.frag" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="shaders\vsm.vert" />
+    <Text Include="shaders\quad.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

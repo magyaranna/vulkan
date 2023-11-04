@@ -14,6 +14,15 @@
 
 namespace v {
 
+	struct TextureResources {
+
+		VkImage image;
+		VkDeviceMemory mem;
+		VkImageView view;
+		VkSampler sampler;
+	};
+
+
 	class Texture {
 
 	private:
@@ -24,19 +33,13 @@ namespace v {
 		std::string texture_path;
 		std::string normalmap_path;
 		/**/
-		VkImage textureImage;
-		VkDeviceMemory textureImageMemory;
-		VkImageView textureImageView;
-		VkSampler textureSampler;
+		TextureResources texture;
+		TextureResources normalmap;
+
 		uint32_t mipLevels;
 
-		VkImage normalMapImage;
-		VkDeviceMemory normalMapImageMemory;
-		VkImageView normalMapImageView;
-		VkSampler normalMapSampler;
-
-		std::vector<VkDescriptorSet> descriptorSets;
-
+		std::vector<VkDescriptorSet> descriptorSetsTexture;
+		std::vector<VkDescriptorSet> descriptorSetsNormalmap;
 
 		void createTextureImage();
 		void createTextureImageView();
@@ -46,21 +49,30 @@ namespace v {
 		void createNormalMapImageView();
 		void createNormalMapSampler();
 
-		void createDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
+		void createDescriptorSets(VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool descriptorPool);
 
 
 
 	public:
 
-		Texture(Device& device, VkDescriptorSetLayout layout, VkDescriptorPool pool, std::string texture, std::string normal);
+		Texture(Device& device, VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool, std::string texture, std::string normal);
 		~Texture();
 
 		void destroy();
 
-		void bind(VkCommandBuffer cmd, VkPipelineLayout pipelinelayout, int currentframe);
+		void bindTexture(VkCommandBuffer cmd, VkPipelineLayout pipelinelayout, int currentframe, int set);
+		void bindNormalMap(VkCommandBuffer cmd, VkPipelineLayout pipelinelayout, int currentframe, int set);
 
-		VkDescriptorSet& getDescriptorSet(int i) { return descriptorSets[i]; }
-		std::vector<VkDescriptorSet> getDescriptorSets() { return descriptorSets; }
+
+		VkDescriptorSet& getDescriptorSetTexture(int i) { return descriptorSetsTexture[i]; }
+		VkDescriptorSet& getDescriptorSetNormalmap(int i) { return descriptorSetsNormalmap[i]; }
+
+		std::vector<VkDescriptorSet> getTextureDescriptorSets() {
+			return descriptorSetsTexture;
+		};
+
+
+		static std::vector<VkDescriptorSet> createDefaultTextureDescriptorSet(Device& device, TextureResources& textureResources, VkDescriptorSetLayout layout, VkDescriptorPool pool);
 
 	};
 

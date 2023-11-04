@@ -19,6 +19,9 @@
     <Filter Include="Source Files\render">
       <UniqueIdentifier>{35937bbe-0e71-498b-8316-06d6bc9ff0c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\shadowmaps">
+      <UniqueIdentifier>{5ac9159e-4143-45d7-bdcf-e4d7bf82f9a9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="window.cpp">
@@ -89,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="blur_render_system.cpp">
       <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="shadowmaps.cpp">
+      <Filter>Source Files\shadowmaps</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -170,12 +176,15 @@
     <ClInclude Include="blur_render_system.h">
       <Filter>Source Files\render</Filter>
     </ClInclude>
+    <ClInclude Include="shadowmaps.h">
+      <Filter>Source Files\shadowmaps</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="shaders\shadow.vert">
+    <None Include="shaders\depth.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\terrain.vert">
@@ -184,13 +193,10 @@
     <None Include="shaders\terrain.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="shaders\cascade.frag">
+    <None Include="shaders\depthCascade.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="shaders\cascade.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\shadow.frag">
+    <None Include="shaders\depth.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\scene.vert">
@@ -205,18 +211,21 @@
     <None Include="shaders\esm.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="shaders\esm.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
     <None Include="shaders\gaussblur.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="shaders\gaussblur.vert">
+    <None Include="shaders\vcsm.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\ecsm.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\gaussblur_cascade.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="shaders\vsm.vert">
+    <Text Include="shaders\quad.vert">
       <Filter>Source Files\shaders</Filter>
     </Text>
   </ItemGroup>

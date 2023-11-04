@@ -16,7 +16,7 @@
 #include "helper.h"
 #include "swapchain.h"
 #include "vertex.h"
-
+#include "texture.h"
 
 
 
@@ -40,7 +40,7 @@ namespace v {
 
 		std::vector<VkDescriptorSet> descriptorSets;
 
-
+		
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 
@@ -53,16 +53,18 @@ namespace v {
 		void createDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
 		
 
-
 		void generate();
 
 		glm::vec3 CalculateNormal(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
 		void createVertexBuffer();
 		void createIndexBuffer();
 
+		TextureResources defaultTexture;
+		std::vector<VkDescriptorSet> defaultTextureDescriptorSets;
+
 	public:
 
-		Terrain(Device& device, glm::vec3 scale, VkDescriptorSetLayout layout, VkDescriptorPool pool);
+		Terrain(Device& device, glm::vec3 scale, VkDescriptorSetLayout layout, VkDescriptorSetLayout textLayout ,VkDescriptorPool pool);
 		~Terrain();
 
 
@@ -73,6 +75,10 @@ namespace v {
 
 		VkDescriptorSet& getDescriptorSet(int i) {
 			return descriptorSets[i];
+		}
+
+		VkDescriptorSet& getDefaultTextureDescriptorSets(int i) {
+			return defaultTextureDescriptorSets[i];
 		}
 	};
 }

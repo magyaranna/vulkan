@@ -1,6 +1,6 @@
 #version 450
 
-layout (set = 0, binding = 9) uniform sampler2D samplerColor;
+layout (set = 0, binding = 20) uniform sampler2D samplerColor;
 
 layout( push_constant ) uniform pushConstants {
   int blurdirection;
