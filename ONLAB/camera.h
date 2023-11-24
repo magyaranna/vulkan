@@ -33,13 +33,13 @@ namespace v {
 		glm::vec3 oriantation = glm::vec3(0.0f, -0.5f, -1.0f);
 		glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 		float znear = 0.1f; //0.1f;
-		float zfar = 100.0f;
+		float zfar = 100.0f; //100.0f;
 
 		bool firstClick = true;
 
 		int width, height;
 
-		float speed = 0.5f;   //1.1;
+		float speed = 1.0f;//0.5f;   //1.1;
 		float sensitivity = 100.0f;
 
 

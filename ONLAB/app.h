@@ -75,6 +75,9 @@ namespace v {
 
         static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
+
+        bool writeFile = false;
+
     public:
 
 

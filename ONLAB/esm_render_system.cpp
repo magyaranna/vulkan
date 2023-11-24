@@ -6,7 +6,7 @@
 namespace v {
 
 	ESM_RenderSystem::ESM_RenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkRenderPass renderPass) : device(device) {
-		
+		ts = std::make_unique<TS_query>(device);
 		createPipelineLayout(setLayouts);
 		createPipeline(renderPass);
 	}
@@ -37,6 +37,9 @@ namespace v {
 		shadowRenderPassInfo.clearValueCount = static_cast<uint32_t>(shadowClearValues.size());
 		shadowRenderPassInfo.pClearValues = shadowClearValues.data();
 
+		// Reset query pool
+		ts->resetQueryPool(renderinfo.cmd);
+
 		vkCmdBeginRenderPass(renderinfo.cmd, &shadowRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		VkViewport v{};
@@ -53,6 +56,9 @@ namespace v {
 
 		vkCmdSetViewport(renderinfo.cmd, 0, 1, &v);
 		vkCmdSetScissor(renderinfo.cmd, 0, 1, &s);
+
+		//writetimestamp
+		ts->writeTimeStamp(renderinfo.cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 		{
 
 			vkCmdBindPipeline(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
@@ -62,6 +68,8 @@ namespace v {
 			vkCmdDraw(renderinfo.cmd, 3, 1, 0, 0);
 
 		}
+		//writetimestamp
+		ts->writeTimeStamp(renderinfo.cmd, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 
 		vkCmdEndRenderPass(renderinfo.cmd);
 

@@ -5,7 +5,7 @@
 namespace v {
 
 	BlurSystem::BlurSystem(Device& device, int binding, std::vector<VkDescriptorSetLayout> setLayouts, VkDescriptorSetLayout blurLayout, VkDescriptorPool pool, VkRenderPass renderPass) : device(device) {
-
+		ts = std::make_unique<TS_query>(device);
 		tempShadowMap = std::make_unique<ColorShadowMap>(device, binding, blurLayout, pool, renderPass);
 		tempCascadeShadowMap = std::make_unique<ColorCascadeShadowMap>(device, binding, blurLayout, pool, renderPass);
 
@@ -53,6 +53,13 @@ namespace v {
 		vkCmdSetViewport(cmd, 0, 1, &v);
 		vkCmdSetScissor(cmd, 0, 1, &s);
 
+		// Reset query pool
+		ts->resetQueryPool(cmd);
+
+		//writetimestamp
+		ts->writeTimeStamp(cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+
+
 		//horizontal
 		vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		{
@@ -81,6 +88,10 @@ namespace v {
 			vkCmdDraw(cmd, 3, 1, 0, 0);
 		}
 		vkCmdEndRenderPass(cmd);
+
+		//writetimestamp
+		ts->writeTimeStamp(cmd, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+
 
 	}
 
@@ -166,22 +177,7 @@ namespace v {
 			}
 			vkCmdEndRenderPass(cmd);
 
-			/* {
-				VkImageMemoryBarrier imageBarrier = {};
-				imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-				imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;  
-				imageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; 
-				imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-				imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-				imageBarrier.image = shadowMap.image; 
-				imageBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; 
-				imageBarrier.subresourceRange.baseMipLevel = 0;
-				imageBarrier.subresourceRange.levelCount = 1;
-				imageBarrier.subresourceRange.baseArrayLayer = 0;
-				imageBarrier.subresourceRange.layerCount = 4;
-
-				vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
-			}*/
+			
 		}
 
 	}

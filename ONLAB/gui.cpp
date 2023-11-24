@@ -52,19 +52,21 @@ namespace v {
 
 
     void Gui::updateGui(Light& light) {
-
+       
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGuiStyle& style = ImGui::GetStyle();
         style.FrameRounding = 8.0f;
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::Begin("GUI");
 
         ImGui::StyleColorsClassic();
 
         ImGui::SeparatorText("General");
         ImGui::Checkbox("pcf", &pcf);
         ImGui::Checkbox("acne removed", &bias);
-        ImGui::Checkbox("cullmode: frontface", &frontface);
+        //ImGui::Checkbox("cullmode: frontface", &frontface);
         ImGui::Checkbox("display normalmap", &displayNormalmap);
         ImGui::Checkbox("spin", &spin);
 
@@ -104,8 +106,12 @@ namespace v {
 
         light.setDirection(glm::vec3(x, -1, z));
 
+        ImGui::Checkbox("getQueryResults", &getQueryResults);
+        ImGui::Checkbox("stopQuery", &stopQuery);
 
-        //ImGui::ShowDemoWindow();
+
+       // ImGui::ShowDemoWindow();
+        ImGui::End();
 
         ImGui::Render();
 

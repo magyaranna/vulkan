@@ -28,6 +28,9 @@ namespace v {
         bool frontface = false;
         bool blur = false;
 
+        bool getQueryResults = false;
+        bool stopQuery = false;
+
 
         Gui(Window& window, Device& device, SwapChain& swapchain, VkDescriptorPool pool);
         ~Gui();

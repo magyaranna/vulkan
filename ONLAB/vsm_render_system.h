@@ -5,6 +5,7 @@
 #include "vertex.h"
 #include "shadowmaps.h"
 #include "renderinfo.h"
+#include "timestamp_query.h"
 
 #include <cassert>
 
@@ -25,6 +26,7 @@ namespace v {
 		void createPipeline(VkRenderPass renderPass);
 
 	public:
+		std::unique_ptr<TS_query> ts;
 
 		VSM_RenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkRenderPass renderPass);
 		~VSM_RenderSystem();

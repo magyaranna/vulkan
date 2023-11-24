@@ -11,7 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "renderinfo.h"
 #include "shadowmaps.h"
-
+#include "timestamp_query.h"
 
 namespace v {
 
@@ -67,6 +67,9 @@ namespace v {
 
 
 	public:
+
+		std::unique_ptr<TS_query> ts;
+
 
 		CascadeShadowRenderSystem(Device& device,
 			std::vector<VkDescriptorSetLayout> setLayouts, std::vector<VkDescriptorSetLayout> setLayoutsESM,  VkDescriptorPool pool, VkRenderPass rp, VkRenderPass colorRp);

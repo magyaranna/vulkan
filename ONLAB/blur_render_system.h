@@ -9,6 +9,7 @@
 #include "shadowmaps.h"
 
 #include <cassert>
+#include "timestamp_query.h"
 
 namespace v {
 
@@ -40,6 +41,7 @@ namespace v {
 
 
 	public:
+		std::unique_ptr<TS_query> ts;
 
 		BlurSystem(Device& device, int binding, std::vector<VkDescriptorSetLayout> setLayouts, VkDescriptorSetLayout blurlayout, VkDescriptorPool pool, VkRenderPass renderPass);
 		~BlurSystem();

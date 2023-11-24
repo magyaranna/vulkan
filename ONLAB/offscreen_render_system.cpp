@@ -6,13 +6,12 @@ namespace v {
 
 
 	OffScreenRenderSystem::OffScreenRenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkRenderPass renderPass) : device(device) {
-
+		ts = std::make_unique<TS_query>(device);
 		createPipelineLayout(setLayouts);
 		createPipeline(renderPass);
 	}
 	OffScreenRenderSystem::~OffScreenRenderSystem() {
 		
-
 		vkDestroyPipelineLayout(device.getLogicalDevice(), pipelineLayout, nullptr);
 	}
 
@@ -37,6 +36,9 @@ namespace v {
 		shadowRenderPassInfo.clearValueCount = static_cast<uint32_t>(shadowClearValues.size());
 		shadowRenderPassInfo.pClearValues = shadowClearValues.data();
 
+		// Reset query pool
+		ts->resetQueryPool(renderinfo.cmd);
+
 		vkCmdBeginRenderPass(renderinfo.cmd, &shadowRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		VkViewport v{};
@@ -54,7 +56,8 @@ namespace v {
 		vkCmdSetViewport(renderinfo.cmd, 0, 1, &v);
 		vkCmdSetScissor(renderinfo.cmd, 0, 1, &s);
 
-
+		//writetimestamp
+		ts->writeTimeStamp(renderinfo.cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 		{
 			if (!renderinfo.gui.frontface)
 				vkCmdBindPipeline(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
@@ -74,6 +77,8 @@ namespace v {
 			}
 
 		}
+		//writetimestamp
+		ts->writeTimeStamp(renderinfo.cmd, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 
 		vkCmdEndRenderPass(renderinfo.cmd);
 

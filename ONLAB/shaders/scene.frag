@@ -291,7 +291,7 @@ void main() {
 	    	discard;
 	}
 
-    outColor = vec4(shadow * color.rgb *(ambient + diffuse + specular), 1.0 );
+    outColor = vec4(shadow * color.rgb , 1.0 );
     
 }
 

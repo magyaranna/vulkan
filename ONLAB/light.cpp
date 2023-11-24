@@ -72,7 +72,7 @@ namespace v {
 
 
 
-		//ubs.proj = glm::ortho(-80.0f, 80.0f, -80.0f, 80.0f, 0.1f, 70.0f);  //50.0f
+		//ubs.proj = glm::ortho(-400.0f, 400.0f, -400.0f, 400.0f, 0.1f, 1000.0f);  //50.0f
 		ubs.proj = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, 0.1f, 70.0f);
 
 

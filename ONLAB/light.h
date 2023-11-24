@@ -21,7 +21,7 @@ namespace v {
 
 		Device& device;
 
-		glm::vec3 position = glm::vec3(0.0f, 50.0f, 0.0f); // glm::vec4(10.0f, 50.0f, 50.0f, 1.0f);
+		glm::vec3 position =  glm::vec3(0.0f, 50.0f, 0.0f); //glm::vec3(0.0f, 400.0f, 0.0f); // glm::vec4(10.0f, 50.0f, 50.0f, 1.0f);
 		glm::vec3 dir = glm::vec3(-0.5f, -1.0f, -0.5f);
 
 

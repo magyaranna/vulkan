@@ -1,5 +1,6 @@
 
 #include "app.h"
+#include <fstream>
 
 
 namespace v {
@@ -36,23 +37,31 @@ namespace v {
             .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT); //normalmap
         std::unique_ptr<DescriptorSetLayout> normalmap_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, normalmap_bindings.bindings);
 
-        std::shared_ptr<Model> sponza_model = std::make_shared<Model>(device, "models/tree.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-     
+     // std::shared_ptr<Model> sponza_model = std::make_shared<Model>(device, "models/sponza.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        std::shared_ptr<Model> tree_model = std::make_shared<Model>(device, "models/tree.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        //std::shared_ptr<Model> cat_model = std::make_shared<Model>(device, "models/cat.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        //std::shared_ptr<Model> house_model = std::make_shared<Model>(device, "models/house.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+
 
         /*gameobj*/
         auto gameobject_bindings = Binding()
             .addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);  
         std::unique_ptr<DescriptorSetLayout> gameobject_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, gameobject_bindings.bindings);
-        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, -3.0f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-        std::unique_ptr<GameObject> obj2 = std::make_unique<GameObject>(1, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(20.0f, -3.0f, -10.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, -3.1f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        //std::unique_ptr<GameObject> obj2 = std::make_unique<GameObject>(1, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(20.0f, -3.0f, -10.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+      //  std::unique_ptr<GameObject> sponza_obj = std::make_unique<GameObject>(1, device, glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.0f, -3.0f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+       // std::unique_ptr<GameObject> cat = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, -3.1f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        std::unique_ptr<GameObject> house = std::make_unique<GameObject>(0, device, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, -3.1f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
 
 
-        obj1->model = sponza_model;
-        obj2->model = sponza_model;
+        obj1->model = tree_model;
+       // obj2->model = tree_model;
+       // cat->model = cat_model;
+        //house->model = house_model;
         
-        
+       // gameobjects.emplace(0, std::move(obj1));
+       // gameobjects.emplace(1, std::move(obj2));
         gameobjects.emplace(0, std::move(obj1));
-        gameobjects.emplace(1, std::move(obj2));
 
         /*terrain*/
         terrain = std::make_unique<Terrain>(device, glm::vec3(0.5f, 0.5f, 0.5f), gameobject_descriptorLayout->getDescriptorSetLayout(), texture_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
@@ -193,7 +202,7 @@ namespace v {
                         blurSystem.render(commandBuffer, frameIndex, expCascadeShadowMap, ecsmDescriptorSets[frameIndex], renderer.colorRenderPass);
                        
                     }
-                    VkImageMemoryBarrier imageBarrier = {};
+                  VkImageMemoryBarrier imageBarrier = {};
                     imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
                     imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;  
                     imageBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL; 
@@ -210,7 +219,7 @@ namespace v {
 
                     imageBarrier.image = expCascadeShadowMap.image;
                     vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
-
+                    
                 }
 
                 renderer.beginSwapChainRenderPass(commandBuffer);
@@ -239,6 +248,21 @@ namespace v {
                 
 
                 renderer.endFrame();     //submit
+
+               
+                if (gui->getQueryResults) {
+                    cascadeRenderSystem.ts->getQueryResults();
+
+                }
+                else if(gui->stopQuery && !writeFile) {
+                    std::ofstream myfile("timestamps.xls");
+                    int vsize = cascadeRenderSystem.ts->deltatimes.size();
+                    for (int n = 0 ; n < vsize; n++)
+                        myfile << cascadeRenderSystem.ts->deltatimes[n] << '\r';
+
+                    writeFile = true;
+                }
+                
             }
         }
         vkDeviceWaitIdle(device.getLogicalDevice());

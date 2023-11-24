@@ -6,7 +6,7 @@ namespace v {
 
 	CascadeShadowRenderSystem::CascadeShadowRenderSystem(Device& device,
 		std::vector<VkDescriptorSetLayout> setLayouts, std::vector<VkDescriptorSetLayout> setLayoutsESM, VkDescriptorPool pool, VkRenderPass rp, VkRenderPass colorRp) : device(device) {
-
+		ts = std::make_unique<TS_query>(device);
 	
 		createPipelineLayout(setLayouts, setLayoutsESM);
 		createPipeline(rp, colorRp);
@@ -185,6 +185,11 @@ namespace v {
 		vkCmdSetViewport(renderinfo.cmd, 0, 1, &v);
 		vkCmdSetScissor(renderinfo.cmd, 0, 1, &s);
 
+		// Reset query pool
+		//ts->resetQueryPool(renderinfo.cmd);
+		//writetimestamp
+		//ts->writeTimeStamp(renderinfo.cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+
 		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++) {
 			renderPassBeginInfo.framebuffer = shadowMap.frameBuffers[i];
 			vkCmdBeginRenderPass(renderinfo.cmd, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -194,6 +199,8 @@ namespace v {
 			}
 			vkCmdEndRenderPass(renderinfo.cmd);
 		}
+		//writetimestamp
+		//ts->writeTimeStamp(renderinfo.cmd, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 	}
 
 	//1db cascadenal az osszes gameobject kirajzolasa
@@ -246,6 +253,12 @@ namespace v {
 		vkCmdSetViewport(renderinfo.cmd, 0, 1, &v);
 		vkCmdSetScissor(renderinfo.cmd, 0, 1, &s);
 
+		// Reset query pool
+		ts->resetQueryPool(renderinfo.cmd);
+		//writetimestamp
+		ts->writeTimeStamp(renderinfo.cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+
+
 		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++) {
 			renderPassBeginInfo.framebuffer = shadowMap.frameBuffers[i];
 			vkCmdBeginRenderPass(renderinfo.cmd, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -255,6 +268,9 @@ namespace v {
 			}
 			vkCmdEndRenderPass(renderinfo.cmd);
 		}
+		//writetimestamp
+		ts->writeTimeStamp(renderinfo.cmd, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+
 	}
 	void CascadeShadowRenderSystem::renderScene(OffScreenRenderInfo renderinfo, int cascadeIndex, CascadeShadowMap& shadowMap) {
 
@@ -375,10 +391,24 @@ namespace v {
 			glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
 			glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
 
+			glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
+			glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+			shadowOrigin = shadowMatrix * shadowOrigin;
+			shadowOrigin = shadowOrigin * 5000.0f / 2.0f;
 
+			glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+			glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+			roundOffset = roundOffset * 2.0f / 5000.0f;
+			roundOffset.z = 0.0f;
+			roundOffset.w = 0.0f;
+
+			glm::mat4 shadowProj = lightOrthoMatrix;
+			shadowProj[3] += roundOffset;
+			lightOrthoMatrix = shadowProj;
+			
 			cascades[i].splitDepth = (nearclip + splitDist * clipRange); //*-1.0f;
 			cascades[i].viewProjMx = lightOrthoMatrix * lightViewMatrix;
-
+			
 
 			lastSplitDist = cascadeSplits[i];
 		}

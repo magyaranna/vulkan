@@ -80,7 +80,7 @@ namespace v {
         configinfo.vertexInputInfo.pVertexAttributeDescriptions = configinfo.attributeDescriptions.data();
 
 
-
+      //  configinfo.rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
 
         pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
     }

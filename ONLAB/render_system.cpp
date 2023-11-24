@@ -33,6 +33,7 @@ namespace v {
         if (vkCreatePipelineLayout(device.getLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
+
     }
 
 
@@ -65,6 +66,8 @@ namespace v {
         pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
 
     }
+
+   
 
     void RenderSystem::renderGameObjects(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderinfo) {
 

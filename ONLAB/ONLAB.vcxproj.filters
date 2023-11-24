@@ -96,6 +96,9 @@
     <ClCompile Include="shadowmaps.cpp">
       <Filter>Source Files\shadowmaps</Filter>
     </ClCompile>
+    <ClCompile Include="timestamp_query.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.h">
@@ -178,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="shadowmaps.h">
       <Filter>Source Files\shadowmaps</Filter>
+    </ClInclude>
+    <ClInclude Include="timestamp_query.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

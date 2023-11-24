@@ -9,6 +9,7 @@
 
 #include "shadowmaps.h"
 #include "renderinfo.h"
+#include "timestamp_query.h"
 
 //https://jankautz.com/publications/esm_gi08.pdf
 
@@ -26,6 +27,7 @@ namespace v {
 		void createPipeline(VkRenderPass renderPass);
 
 	public:
+		std::unique_ptr<TS_query> ts;
 
 		ESM_RenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkRenderPass renderPass);
 		~ESM_RenderSystem();

@@ -79,7 +79,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 
 
  float linstep(float min, float max, float v) {   
-    return clamp((v-min) / (max-min), 0.2, 1.0);
+    return clamp((v-min) / (max-min), 0.3, 1.0);
  
  } 
  
@@ -99,7 +99,8 @@ float chebyshevUpperBound( vec4 fragPosLightSpace, int index) {    /*VSM*/
                 variance = max(variance, 0.0002);
                 float d = projCoords.z - moments.x;
    
-                float p_max = linstep(0.0, 1.0, variance / (variance + d * d ));
+                float p_max = linstep(0.2, 1.0, variance / (variance + d * d ));
+               // float p_max = variance / (variance + d * d );
 
                 return p_max;
 	        }
@@ -108,14 +109,14 @@ float chebyshevUpperBound( vec4 fragPosLightSpace, int index) {    /*VSM*/
     else{
         vec2 moments = texture(VSMshadowSampler, projCoords.xy).xy;
 
-        if (projCoords.z <= moments.x)
-            return 1.0;
+      //  if (projCoords.z <= moments.x)
+     //       return 1.0;
 
         float variance = moments.y - (moments.x * moments.x); 
         variance = max(variance, 0.0002);
         float d = projCoords.z - moments.x;
    
-        float p_max = linstep(0.0, 1.0, variance / (variance + d * d ));
+        float p_max = linstep(0.3, 1.0, variance / (variance + d * d ));
 
         return p_max;
     }
