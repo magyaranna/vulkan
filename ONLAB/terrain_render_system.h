@@ -31,7 +31,7 @@ namespace v {
 		~TerrainRenderSystem();
 
 		void renderTerrain(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderInfo);
-
+		void recreatePipeline(VkRenderPass renderPass);
 
 
 	};

@@ -389,16 +389,17 @@ namespace v {
 
 			glm::vec3 lightDir = glm::normalize(dir);
 			glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
-			glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
+			float r =  2.0f * glm::vec3(radius).z;
+			glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, r);
 
 			glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
 			glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 			shadowOrigin = shadowMatrix * shadowOrigin;
-			shadowOrigin = shadowOrigin * 5000.0f / 2.0f;
+			shadowOrigin = shadowOrigin * 3000.0f / 2.0f;
 
 			glm::vec4 roundedOrigin = glm::round(shadowOrigin);
 			glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
-			roundOffset = roundOffset * 2.0f / 5000.0f;
+			roundOffset = roundOffset * 2.0f / 3000.0f;
 			roundOffset.z = 0.0f;
 			roundOffset.w = 0.0f;
 
@@ -406,7 +407,7 @@ namespace v {
 			shadowProj[3] += roundOffset;
 			lightOrthoMatrix = shadowProj;
 			
-			cascades[i].splitDepth = (nearclip + splitDist * clipRange); //*-1.0f;
+			cascades[i].splitDepth = (nearclip + splitDist * clipRange) * -1.0f; //*-1.0f;
 			cascades[i].viewProjMx = lightOrthoMatrix * lightViewMatrix;
 			
 

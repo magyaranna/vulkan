@@ -78,8 +78,8 @@ namespace v {
 
         Helper::createImage(device, texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, texture.image, texture.mem);
 
-        Helper::transitionImageLayout(device, texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
-        Helper::copyBufferToImage(device, stagingBuffer, texture.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+        Helper::transitionImageLayout(device, texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 1);
+        Helper::copyBufferToImage(device, stagingBuffer, texture.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
         // transitionImageLayout(texture.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
@@ -144,9 +144,9 @@ namespace v {
 
         Helper::createImage(device, texWidth, texHeight, 1, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, normalmap.image, normalmap.mem);
 
-        Helper::transitionImageLayout(device, normalmap.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1);
-        Helper::copyBufferToImage(device, stagingBuffer, normalmap.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-        Helper::transitionImageLayout(device, normalmap.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1);
+        Helper::transitionImageLayout(device, normalmap.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, 1);
+        Helper::copyBufferToImage(device, stagingBuffer, normalmap.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
+        Helper::transitionImageLayout(device, normalmap.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 1);
 
         vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
         vkFreeMemory(device.getLogicalDevice(), stagingBufferMemory, nullptr);
@@ -283,8 +283,8 @@ namespace v {
 
         Helper::createImage(device, texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureResources.image, textureResources.mem);
 
-        Helper::transitionImageLayout(device, textureResources.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
-        Helper::copyBufferToImage(device, stagingBuffer, textureResources.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+        Helper::transitionImageLayout(device, textureResources.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 1);
+        Helper::copyBufferToImage(device, stagingBuffer, textureResources.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
         
         vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
         vkFreeMemory(device.getLogicalDevice(), stagingBufferMemory, nullptr);

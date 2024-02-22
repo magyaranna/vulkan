@@ -23,8 +23,6 @@ namespace v {
 
 		VkRenderPass renderPass;
 
-
-
 		std::vector<VkFramebuffer> swapChainFramebuffers;
 
 		std::vector<VkSemaphore> imageAvailableSemaphores;

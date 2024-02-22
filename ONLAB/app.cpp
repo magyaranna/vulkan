@@ -25,7 +25,7 @@ namespace v {
             .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
         std::unique_ptr<DescriptorSetLayout> camera_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, camera_binding.bindings);
         camera = std::make_unique<Camera>(device, *renderer.swapchain, window.getWidth(),
-            window.getHeight(), glm::vec3(0.0f, 10.0f, 10.0f), camera_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+            window.getHeight(), glm::vec3(0.0f, 10.0f, 10.0f), *camera_descriptorLayout, descriptorPool);
 
         /*texture*/
         auto texture_bindings = Binding()
@@ -37,42 +37,39 @@ namespace v {
             .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT); //normalmap
         std::unique_ptr<DescriptorSetLayout> normalmap_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, normalmap_bindings.bindings);
 
-     // std::shared_ptr<Model> sponza_model = std::make_shared<Model>(device, "models/sponza.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
         std::shared_ptr<Model> tree_model = std::make_shared<Model>(device, "models/tree.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-        //std::shared_ptr<Model> cat_model = std::make_shared<Model>(device, "models/cat.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-        //std::shared_ptr<Model> house_model = std::make_shared<Model>(device, "models/house.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
 
 
         /*gameobj*/
         auto gameobject_bindings = Binding()
             .addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);  
         std::unique_ptr<DescriptorSetLayout> gameobject_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, gameobject_bindings.bindings);
-        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, -3.1f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-        //std::unique_ptr<GameObject> obj2 = std::make_unique<GameObject>(1, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(20.0f, -3.0f, -10.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-      //  std::unique_ptr<GameObject> sponza_obj = std::make_unique<GameObject>(1, device, glm::vec3(0.2f, 0.2f, 0.2f), glm::vec3(0.0f, -3.0f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-       // std::unique_ptr<GameObject> cat = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, -3.1f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-        std::unique_ptr<GameObject> house = std::make_unique<GameObject>(0, device, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.0f, -3.1f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
-
-
+        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(-10.0f, -3.1f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
         obj1->model = tree_model;
-       // obj2->model = tree_model;
-       // cat->model = cat_model;
-        //house->model = house_model;
+        std::unique_ptr<GameObject> obj2 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(14.0f, -3.1f, 2.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        obj2->model = tree_model;
+
         
-       // gameobjects.emplace(0, std::move(obj1));
-       // gameobjects.emplace(1, std::move(obj2));
         gameobjects.emplace(0, std::move(obj1));
+        gameobjects.emplace(1, std::move(obj2));
 
         /*terrain*/
-        terrain = std::make_unique<Terrain>(device, glm::vec3(0.5f, 0.5f, 0.5f), gameobject_descriptorLayout->getDescriptorSetLayout(), texture_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        terrain = std::make_unique<Terrain>(device, glm::vec3(0.5f, 0.5f, 0.5f), *gameobject_descriptorLayout, texture_descriptorLayout->getDescriptorSetLayout(), descriptorPool);
 
         /*light*/
         Binding light_binding = Binding()
             .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL)
             .addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL);
         std::unique_ptr<DescriptorSetLayout> light_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, light_binding.bindings);
-        light = std::make_unique<Light>(device, light_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        light = std::make_unique<Light>(device, *light_descriptorLayout, descriptorPool);
 
+        /*skybox*/
+        ////////////////////////////////////////////////////////////
+        Binding skybox_binding = Binding()
+            .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);
+        std::unique_ptr<DescriptorSetLayout> skybox_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, skybox_binding.bindings);
+        skybox = std::make_unique<SkyBox>(device, *skybox_descriptorLayout, descriptorPool);
+        ////////////////////////////////////////////////////////////
 
         /*shadowmap*/
         Binding shadowmap_binding = Binding()
@@ -134,12 +131,16 @@ namespace v {
         descriptorLayouts.push_back(vsm_descriptorLayout->getDescriptorSetLayout());  //vsm shadowmap
         descriptorLayouts.push_back(esm_descriptorLayout->getDescriptorSetLayout());  //esm shadowmap
 
-
+        std::vector<VkDescriptorSetLayout> l;
+        l.push_back(camera_descriptorLayout->getDescriptorSetLayout());
+        l.push_back(skybox_descriptorLayout->getDescriptorSetLayout());
 
         RenderSystem renderSystem{ device, renderer.swapchain->getRenderPass(),descriptorLayouts };
         TerrainRenderSystem terrainRenderSystem{ device,renderer.swapchain->getRenderPass(),
             {descriptorLayouts[0],  descriptorLayouts[3], descriptorLayouts[4], descriptorLayouts[5], descriptorLayouts[6],  descriptorLayouts[7], descriptorLayouts[8], descriptorLayouts[9] } };
 
+        SkyboxRenderSystem skyboxRenderSystem{ device, renderer.swapchain->getRenderPass(), l };
+        
 
         OffScreenRenderSystem offscreenRenderSystem{ device, {  descriptorLayouts[1],descriptorLayouts[3], descriptorLayouts[4]},  renderer.depthRenderPass };
         VSM_RenderSystem vsmRenderSystem{ device,{ descriptorLayouts[5] },  renderer.colorRenderPass };
@@ -147,8 +148,20 @@ namespace v {
         CascadeShadowRenderSystem cascadeRenderSystem{ device, {descriptorLayouts[1], descriptorLayouts[3], descriptorLayouts[7]}, {descriptorLayouts[6]},descriptorPool.getDescriptorPool(),  renderer.depthRenderPass,  renderer.colorRenderPass };
         BlurSystem blurSystem{ device, 20, {blur_descriptorLayouts->getDescriptorSetLayout()}, blur_descriptorLayouts->getDescriptorSetLayout(), descriptorPool.getDescriptorPool(), renderer.colorRenderPass };
     
+
+
+
+        bool f = false;
         int frameIndex = 0;
         while (!window.shouldClose()) {
+
+            if (gui->getQueryResults && !f) {
+                vkDeviceWaitIdle(device.getLogicalDevice());
+                system("%VULKAN_SDK%/Bin/glslc.exe shaders/terrain.frag -o shaders/terrainFrag.spv");
+                terrainRenderSystem.recreatePipeline(renderer.swapchain->getRenderPass());
+                f = true;
+            }
+            
 
             frameIndex = renderer.getFrameIndex();
             glfwPollEvents();
@@ -158,7 +171,7 @@ namespace v {
             if (!isImGuiWindowHovered) {
                 camera->Inputs(window.getWindow());
             }
-
+ 
             glfwPollEvents();
 
             gui->updateGui(*light.get());
@@ -169,9 +182,8 @@ namespace v {
                 for (int i = 0; i < gameobjects.size(); i++) {
                     gameobjects.at(i)->updateUniformBuffer(frameIndex, gui->spin);
                 }
-                light->updateLightUniformBuffer(frameIndex);
-                camera->updateGlobalUniformBuffer(frameIndex);
-                light->updateLightVPUniformBuffer(frameIndex);
+                light->updateUniformBuffer(frameIndex);
+                camera->updateUniformBuffer(frameIndex);
                 terrain->updateUniformBuffer(frameIndex, gui->spin);
 
                 cascadeRenderSystem.updateCascades(camera, light->getDir(), gui->splitLambda);
@@ -180,13 +192,15 @@ namespace v {
 
                 vkDeviceWaitIdle(device.getLogicalDevice());
 
-
+                //depth
                 OffScreenRenderInfo offscreenRenderInfo{ commandBuffer,frameIndex, renderer.depthRenderPass, light,*gui, terrain, gameobjects,};
                 {
                     offscreenRenderSystem.renderGameObjects(offscreenRenderInfo, simpleDepthShadowMap);
                     cascadeRenderSystem.renderGameObjects(offscreenRenderInfo, cascadeShadowMap);
                 }
+                
 
+                //color sm
                 offscreenRenderInfo.renderPass = renderer.colorRenderPass;
                 {
                     vsmRenderSystem.renderGameObjects(offscreenRenderInfo, varianceShadowMap, simpleDepthShadowMap.getDescriptorSet(frameIndex));
@@ -196,12 +210,12 @@ namespace v {
                     if (gui->cascade && gui->esm) cascadeRenderSystem.renderGameObjects(offscreenRenderInfo, expCascadeShadowMap, cascadeShadowMap);
 
                     if (gui->blur) {
-                        blurSystem.render(commandBuffer, frameIndex, varianceShadowMap, vsmDescriptorSets[frameIndex], renderer.colorRenderPass);
-                        blurSystem.render(commandBuffer, frameIndex, expShadowMap, esmDescriptorSets[frameIndex], renderer.colorRenderPass);
-                        blurSystem.render(commandBuffer, frameIndex, varianceCascadeShadowMap, vcsmDescriptorSets[frameIndex], renderer.colorRenderPass);
-                        blurSystem.render(commandBuffer, frameIndex, expCascadeShadowMap, ecsmDescriptorSets[frameIndex], renderer.colorRenderPass);
-                       
+                        if (gui->cascade && gui->vsm) blurSystem.render(commandBuffer, frameIndex, varianceCascadeShadowMap, vcsmDescriptorSets[frameIndex], renderer.colorRenderPass);
+                        else if (gui->cascade && gui->esm) blurSystem.render(commandBuffer, frameIndex, expCascadeShadowMap, ecsmDescriptorSets[frameIndex], renderer.colorRenderPass);
+                        else if (!gui->cascade && gui->vsm) blurSystem.render(commandBuffer, frameIndex, varianceShadowMap, vsmDescriptorSets[frameIndex], renderer.colorRenderPass);
+                        else if (!gui->cascade && gui->esm) blurSystem.render(commandBuffer, frameIndex, expShadowMap, esmDescriptorSets[frameIndex], renderer.colorRenderPass);
                     }
+
                   VkImageMemoryBarrier imageBarrier = {};
                     imageBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
                     imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;  
@@ -239,9 +253,12 @@ namespace v {
                         expShadowMap.getDescriptorSet(frameIndex)
                     };
 
+                    skyboxRenderSystem.drawSkybox(commandBuffer, frameIndex, *skybox, *camera);
+                    
                     terrainRenderSystem.renderTerrain(commandBuffer, frameIndex, renderInfo);
 
                     renderSystem.renderGameObjects(commandBuffer, frameIndex, renderInfo);
+
                 }
                 renderer.endRenderPass(commandBuffer);
 
@@ -250,7 +267,7 @@ namespace v {
                 renderer.endFrame();     //submit
 
                
-                if (gui->getQueryResults) {
+               /* if (gui->getQueryResults) {
                     cascadeRenderSystem.ts->getQueryResults();
 
                 }
@@ -261,7 +278,7 @@ namespace v {
                         myfile << cascadeRenderSystem.ts->deltatimes[n] << '\r';
 
                     writeFile = true;
-                }
+                }*/
                 
             }
         }

@@ -8,6 +8,8 @@
 #include <array>
 #include "device.h"
 
+#include "swapchain.h"
+
 
 
 namespace v {
@@ -45,13 +47,15 @@ namespace v {
         Device& device;
         VkDescriptorPool descriptorPool;
 
+        friend class DescriptorWriter;
+
     public:
         DescriptorPool(Device& device, int count);
         ~DescriptorPool();
         DescriptorPool(const DescriptorPool&) = delete;
         DescriptorPool& operator=(const DescriptorPool&) = delete;
 
-        bool allocateDescriptor() const;
+        void allocateDescriptor(const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet& descriptorSet) const;
        // void freeDescriptors(std::vector<VkDescriptorSet>& descriptors) const;
 
         VkDescriptorPool getDescriptorPool() { return descriptorPool; }
@@ -69,10 +73,10 @@ namespace v {
     public:
         DescriptorWriter(DescriptorSetLayout& setLayout, DescriptorPool& pool);
 
-        DescriptorWriter& writeBuffer();
-        DescriptorWriter& writeImage();
-
-        
+        DescriptorWriter& createDescriptorWriter(uint32_t binding, VkDescriptorBufferInfo* imageInfo);
+        DescriptorWriter& createDescriptorWriter(uint32_t binding, VkDescriptorImageInfo* bufferInfo);
+        void build(VkDescriptorSet& set);
+        void update(VkDescriptorSet& set);
     };
 
 

@@ -9,12 +9,10 @@ layout(set = 1,  binding = 1) uniform UniformBufferObject {
 layout( set = 2, binding = 0) uniform UniformBufferLightVP {	
    mat4 view;
    mat4 proj;
+   vec3 pos;
+   vec3 dir;
 } light;
 
-layout(set = 2, binding = 1) uniform UniformBufferLight {
-    vec3 pos;
-	vec3 dir;
-} lbo;
 
 layout(location = 0) in vec3 inPosition;	
 layout(location = 1) in vec2 inUV;	

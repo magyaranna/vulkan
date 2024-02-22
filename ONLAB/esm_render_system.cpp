@@ -38,7 +38,7 @@ namespace v {
 		shadowRenderPassInfo.pClearValues = shadowClearValues.data();
 
 		// Reset query pool
-		ts->resetQueryPool(renderinfo.cmd);
+		//ts->resetQueryPool(renderinfo.cmd);
 
 		vkCmdBeginRenderPass(renderinfo.cmd, &shadowRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -58,10 +58,10 @@ namespace v {
 		vkCmdSetScissor(renderinfo.cmd, 0, 1, &s);
 
 		//writetimestamp
-		ts->writeTimeStamp(renderinfo.cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+		//ts->writeTimeStamp(renderinfo.cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 		{
 
-			vkCmdBindPipeline(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
+				vkCmdBindPipeline(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
 			vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSetShadowmap, 0, nullptr);
 
@@ -69,7 +69,7 @@ namespace v {
 
 		}
 		//writetimestamp
-		ts->writeTimeStamp(renderinfo.cmd, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+		//ts->writeTimeStamp(renderinfo.cmd, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
 
 		vkCmdEndRenderPass(renderinfo.cmd);
 

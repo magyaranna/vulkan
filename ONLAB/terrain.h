@@ -18,7 +18,8 @@
 #include "vertex.h"
 #include "texture.h"
 
-
+#include "buffer.h"
+#include "descriptors.h"
 
 namespace v {
 
@@ -32,51 +33,41 @@ namespace v {
 		glm::vec3 scale;
 
 
-		struct UniformBufferObject {
+		struct TerrainUniformBufferObject {
 			glm::mat4 modelmx;
 		};
-		std::vector<VkBuffer> modelMxUniform;
-		std::vector<VkDeviceMemory> uniformBuffersMemory;
-
-		std::vector<VkDescriptorSet> descriptorSets;
-
-		
+		std::vector<std::unique_ptr<Buffer>> modelMxUniform;
+		void createUniformBuffers();
+	
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+		std::unique_ptr<Buffer> vertexBuffer;
+		std::unique_ptr<Buffer> indexBuffer;
+		void createVertexBuffer();
+		void createIndexBuffer();
 
-		VkBuffer vertexBuffer;
-		VkDeviceMemory vertexBufferMemory;
-		VkBuffer indexBuffer;
-		VkDeviceMemory indexBufferMemory;
-
-		void createUniformBuffers();
-		void createDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
+		std::vector<VkDescriptorSet> descriptorSets;
+		void createDescriptorSets(DescriptorSetLayout& setLayout, DescriptorPool& pool);
 		
 
 		void generate();
-
 		glm::vec3 CalculateNormal(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
-		void createVertexBuffer();
-		void createIndexBuffer();
+		
 
 		TextureResources defaultTexture;
 		std::vector<VkDescriptorSet> defaultTextureDescriptorSets;
 
 	public:
-
-		Terrain(Device& device, glm::vec3 scale, VkDescriptorSetLayout layout, VkDescriptorSetLayout textLayout ,VkDescriptorPool pool);
+		Terrain(Device& device, glm::vec3 scale, DescriptorSetLayout& setLayout, VkDescriptorSetLayout textLayout, DescriptorPool& pool);
 		~Terrain();
-
 
 		void updateUniformBuffer(uint32_t currentImage, bool spin);
 		void draw(VkCommandBuffer cmd);
 
 
-
 		VkDescriptorSet& getDescriptorSet(int i) {
 			return descriptorSets[i];
 		}
-
 		VkDescriptorSet& getDefaultTextureDescriptorSets(int i) {
 			return defaultTextureDescriptorSets[i];
 		}

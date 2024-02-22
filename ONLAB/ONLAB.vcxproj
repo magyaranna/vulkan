@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="app.cpp" />
     <ClCompile Include="blur_render_system.cpp" />
+    <ClCompile Include="buffer.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="cascadeshadow_render_system.cpp" />
     <ClCompile Include="descriptors.cpp" />
@@ -161,6 +162,8 @@
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="render_system.cpp" />
     <ClCompile Include="shadowmaps.cpp" />
+    <ClCompile Include="skybox.cpp" />
+    <ClCompile Include="skybox_render_system.cpp" />
     <ClCompile Include="swapchain.cpp" />
     <ClCompile Include="terrain.cpp" />
     <ClCompile Include="terrain_render_system.cpp" />
@@ -172,6 +175,7 @@
   <ItemGroup>
     <ClInclude Include="app.h" />
     <ClInclude Include="blur_render_system.h" />
+    <ClInclude Include="buffer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="cascadeshadow_render_system.h" />
     <ClInclude Include="descriptors.h" />
@@ -189,7 +193,10 @@
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="render_system.h" />
+    <ClInclude Include="pipelinemanager.h" />
     <ClInclude Include="shadowmaps.h" />
+    <ClInclude Include="skybox.h" />
+    <ClInclude Include="skybox_render_system.h" />
     <ClInclude Include="swapchain.h" />
     <ClInclude Include="terrain.h" />
     <ClInclude Include="terrain_render_system.h" />
@@ -210,6 +217,8 @@
     <None Include="shaders\scene.vert" />
     <None Include="shaders\depth.frag" />
     <None Include="shaders\depth.vert" />
+    <None Include="shaders\skybox.frag" />
+    <None Include="shaders\skybox.vert" />
     <None Include="shaders\terrain.frag" />
     <None Include="shaders\terrain.vert" />
     <None Include="shaders\vcsm.frag" />

@@ -37,7 +37,9 @@ namespace v {
         }
 
     }
-
+    void TerrainRenderSystem::recreatePipeline(VkRenderPass renderPass) {
+        createPipeline(renderPass);
+    }
 
     void TerrainRenderSystem::createPipeline(VkRenderPass renderPass) {
 

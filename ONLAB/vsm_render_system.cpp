@@ -62,7 +62,7 @@ namespace v {
 		//writetimestamp
 		ts->writeTimeStamp(renderinfo.cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 		{
-
+			
 			vkCmdBindPipeline(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
 			vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSetShadowmap, 0, nullptr);
@@ -93,8 +93,8 @@ namespace v {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
 
-
 	}
+
 	void VSM_RenderSystem::createPipeline(VkRenderPass renderPass) {
 
 		const std::string vert = "shaders/quadVert.spv";

@@ -26,27 +26,14 @@
 #include "terrain.h"
 
 #include "shadowmaps.h"
-
+#include "skybox.h"
+#include "skybox_render_system.h"
 
 namespace v {
 
 
     const uint32_t WIDTH = 800;
     const uint32_t HEIGHT = 600;
-
-    const std::string MODEL_PATH = "models/viking_room.obj";
-    const std::string TEXTURE_PATH = "textures/viking_room.png";
-    const std::string TEXTURE_PATH_R = "textures/r.png";
-
-
-    const std::string MODEL_PATH1 = "models/barrel.obj";
-    const std::string TEXTURE_PATH1 = "textures/barrel.png";
-    const std::string NORMALMAP_PATH1 = "textures/barrelNormal.png";
-
-    const std::string MODEL_PATH2 = "models/sponza.obj";
-    const std::string TEXTURE_PATH2 = "textures/r2.png";
-    const std::string NORMALMAP_PATH2 = "textures/r.png";
-
 
 
     class App {
@@ -58,7 +45,7 @@ namespace v {
         Renderer renderer{ window,device, instance };
 
 
-        DescriptorPool descriptorPool{ device,2 };  ///////?
+        DescriptorPool descriptorPool{ device,2 };  
         std::vector<VkDescriptorSetLayout> descriptorLayouts;
 
 
@@ -68,7 +55,7 @@ namespace v {
 
         std::unique_ptr<Terrain> terrain;
 
-
+        std::unique_ptr<SkyBox> skybox;
 
         // std::vector<GameObject*> gameobjects = {};
         std::unordered_map<unsigned int, std::unique_ptr<GameObject>> gameobjects;

@@ -13,12 +13,10 @@ layout(set = 2, binding = 0) uniform sampler2D normalMap;
 layout(set = 4, binding = 0) uniform UniformBufferLightVP {
     mat4 view;
     mat4 proj;
-} light;
-
-layout(set = 4, binding = 1) uniform UniformBufferLight {
     vec3 pos;
     vec3 dir;
-} lbo;
+} light;
+
 
 layout (set = 7, binding = 5) uniform UniformLightSpace {
 	mat4 cascadeViewProjMat[4];
@@ -184,7 +182,7 @@ void main() {
     normal = normalize(normal * 2.0 - 1.0); 
     normal = normalize(TBN * normal);
 
-    vec3 lightDir   = normalize(lbo.pos - fragPos);
+    vec3 lightDir   = normalize(light.pos - fragPos);
 
     vec3 lightColor = vec3(1.0f,1.0f,1.0f);
     float ambientStrength = 0.5;  
@@ -201,9 +199,21 @@ void main() {
     /*COLOR*/
     vec4 color = vec4(1.0);
     if(p.displayNormalmap == 1){
-        color = vec4(normal, 1.0);
+        if(p.esm == 1){
+            color = vec4(fragNormal, 1.0);
+         }
+         else{
+            color = vec4(normal, 1.0);
+         }
+        
     }else{
-        color = texture(texSampler, uv) * vec4((ambient +  diffuse),1.0);
+        if(p.vsm == 1){
+             color = texture(texSampler, uv);
+        }
+        else{
+             color = texture(texSampler, uv) * vec4((ambient +  diffuse), 1.0);
+        }
+       
     }
     
     /*Shadow*/
@@ -291,7 +301,9 @@ void main() {
 	    	discard;
 	}
 
-    outColor = vec4(shadow * color.rgb , 1.0 );
+    
+
+    outColor = vec4(/*shadow **/ color.rgb , 1.0 );
     
 }
 

@@ -93,7 +93,7 @@ namespace v {
             return imageView;
         }
 
-        static void transitionImageLayout(Device& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+        static void transitionImageLayout(Device& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels, uint32_t layerCount) {
             VkCommandBuffer commandBuffer = Helper::beginSingleTimeCommands(device);
 
             VkImageMemoryBarrier barrier{};
@@ -106,7 +106,7 @@ namespace v {
             barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             barrier.subresourceRange.baseMipLevel = 0;
             barrier.subresourceRange.baseArrayLayer = 0;
-            barrier.subresourceRange.layerCount = 1;
+            barrier.subresourceRange.layerCount = layerCount;
             barrier.subresourceRange.levelCount = mipLevels;
 
             VkPipelineStageFlags sourceStage;
@@ -232,7 +232,7 @@ namespace v {
             endSingleTimeCommands(device, commandBuffer);
         }
 
-        static void copyBufferToImage(Device& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+        static void copyBufferToImage(Device& device, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount) {
             VkCommandBuffer commandBuffer = Helper::beginSingleTimeCommands(device);
 
             VkBufferImageCopy region{};
@@ -242,7 +242,7 @@ namespace v {
             region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             region.imageSubresource.mipLevel = 0;
             region.imageSubresource.baseArrayLayer = 0;
-            region.imageSubresource.layerCount = 1;
+            region.imageSubresource.layerCount = layerCount;
             region.imageOffset = { 0, 0, 0 };
             region.imageExtent = {
                 width,
@@ -282,50 +282,6 @@ namespace v {
             vkBindBufferMemory(device.getLogicalDevice(), buffer, bufferMemory, 0);
 
         }
-
-        /* static void createVertexBuffer(Device& device, std::vector<T> vertices, VkBuffer vertexBuffer, VkDeviceMemory vertexBufferMemory) {
-             VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-
-             VkBuffer stagingBuffer;
-             VkDeviceMemory stagingBufferMemory;
-             Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-             void* data;
-             vkMapMemory(device.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-             memcpy(data, vertices.data(), (size_t)bufferSize);
-             vkUnmapMemory(device.getLogicalDevice(), stagingBufferMemory);
-
-             Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
-
-             copyBuffer(device,stagingBuffer, vertexBuffer, bufferSize);
-
-             vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
-             vkFreeMemory(device.getLogicalDevice(), stagingBufferMemory, nullptr);
-         }
-
-
-         static void createIndexBuffer(Device& device, std::vector<uint32_t> indices, VkBuffer indexBuffer, VkDeviceMemory indexBufferMemory ) {
-             VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-             VkBuffer stagingBuffer;
-             VkDeviceMemory stagingBufferMemory;
-             Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-
-             void* data;
-             vkMapMemory(device.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-             memcpy(data, indices.data(), (size_t)bufferSize);
-             vkUnmapMemory(device.getLogicalDevice(), stagingBufferMemory);
-
-             Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
-
-             copyBuffer(device, stagingBuffer, indexBuffer, bufferSize);
-
-             vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
-             vkFreeMemory(device.getLogicalDevice(), stagingBufferMemory, nullptr);
-         }*/
-
-
-
 
 
         static void copyBuffer(Device& device, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {

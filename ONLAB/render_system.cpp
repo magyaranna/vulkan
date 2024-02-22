@@ -67,7 +67,7 @@ namespace v {
 
     }
 
-   
+
 
     void RenderSystem::renderGameObjects(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderinfo) {
 

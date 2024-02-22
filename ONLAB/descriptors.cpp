@@ -18,10 +18,7 @@ namespace v {
         return *this;
     }
 
-
-
-    /*descripotrset*/
-
+    /*layout*/
     DescriptorSetLayout::DescriptorSetLayout(Device& device, std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> bindings) : device(device) , bindings(bindings) {
 
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings{};
@@ -44,9 +41,8 @@ namespace v {
     }
 
     
-   
-    /*Descriptor Pool*/
 
+    /*pool*/
     DescriptorPool::DescriptorPool(Device& device, int count) : device(device){    //count = swapChain.MAX_FRAMES_IN_FLIGHT
 
         std::array<VkDescriptorPoolSize, 2> poolSizes{};
@@ -71,28 +67,77 @@ namespace v {
         vkDestroyDescriptorPool(device.getLogicalDevice(), descriptorPool, nullptr);
     }
 
+    void DescriptorPool::allocateDescriptor(const VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet& descriptorSet) const {
+        
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = descriptorPool;
+        allocInfo.pSetLayouts = &descriptorSetLayout;
+        allocInfo.descriptorSetCount = 1;
 
-
-    //TODO
-    bool DescriptorPool::allocateDescriptor() const {
-        return true;
-           
+        if (vkAllocateDescriptorSets(device.getLogicalDevice(), &allocInfo, &descriptorSet) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate descriptor sets!");
+        }
     }
    
 
 
-    /*Descriptor writes*/
-    DescriptorWriter::DescriptorWriter(DescriptorSetLayout& setLayout, DescriptorPool& pool) : setLayout(setLayout), pool(pool) {}
 
-    DescriptorWriter& DescriptorWriter::writeBuffer() {
-       
-        return *this;
-    }
-    DescriptorWriter& DescriptorWriter::writeImage() {
-       
-        return *this;
+    /**/
+    DescriptorWriter::DescriptorWriter(DescriptorSetLayout& setLayout, DescriptorPool& pool) : setLayout(setLayout), pool(pool) {
+    
     }
 
+    DescriptorWriter& DescriptorWriter::createDescriptorWriter(uint32_t binding, VkDescriptorBufferInfo* bufferInfo) {
 
+        auto& bindingDescription = setLayout.bindings[binding];
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        //descriptorWrite.dstSet = descriptorSet;
+        descriptorWrite.dstBinding = binding;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = bindingDescription.descriptorType;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = bufferInfo;
+
+        writes.push_back(descriptorWrite);
+        return *this;
+        
+    }
+
+    DescriptorWriter& DescriptorWriter::createDescriptorWriter(uint32_t binding, VkDescriptorImageInfo* imageInfo) {
+
+        auto& bindingDescription = setLayout.bindings[binding];
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        //descriptorWrite.dstSet = descriptorSet;
+        descriptorWrite.dstBinding = binding;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = bindingDescription.descriptorType;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = imageInfo;
+
+        writes.push_back(descriptorWrite);
+        return *this;
+
+    }
+
+
+    void DescriptorWriter::build(VkDescriptorSet& set) {
+        pool.allocateDescriptor(setLayout.getDescriptorSetLayout(), set);
+        update(set);
+    }
+
+    void DescriptorWriter::update(VkDescriptorSet& set) {
+        for (auto& write : writes) {
+            write.dstSet = set;
+        }
+        vkUpdateDescriptorSets(pool.device.getLogicalDevice(), writes.size(), writes.data(), 0, nullptr);
+    }
+
+
+    
 
 }

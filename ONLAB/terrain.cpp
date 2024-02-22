@@ -4,28 +4,18 @@
 
 namespace v {
 
-	Terrain::Terrain(Device& device, glm::vec3 scale, VkDescriptorSetLayout layout, VkDescriptorSetLayout textLayout , VkDescriptorPool pool) : device(device), scale(scale) {
+	Terrain::Terrain(Device& device, glm::vec3 scale, DescriptorSetLayout& setLayout, VkDescriptorSetLayout textLayout, DescriptorPool& pool) : device(device), scale(scale) {
 		generate();
 		createVertexBuffer();
 		createIndexBuffer();
 
 		createUniformBuffers();
-		createDescriptorSets(layout, pool);
-		defaultTextureDescriptorSets = Texture::createDefaultTextureDescriptorSet(device, defaultTexture, textLayout, pool);
+		createDescriptorSets(setLayout, pool);
+		defaultTextureDescriptorSets = Texture::createDefaultTextureDescriptorSet(device, defaultTexture, textLayout, pool.getDescriptorPool());
 
 	}
 	Terrain::~Terrain() {
-		vkDestroyBuffer(device.getLogicalDevice(), indexBuffer, nullptr);
-		vkFreeMemory(device.getLogicalDevice(), indexBufferMemory, nullptr);
-
-		vkDestroyBuffer(device.getLogicalDevice(), vertexBuffer, nullptr);
-		vkFreeMemory(device.getLogicalDevice(), vertexBufferMemory, nullptr);
-
-		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-			vkDestroyBuffer(device.getLogicalDevice(), modelMxUniform[i], nullptr);
-			vkFreeMemory(device.getLogicalDevice(), uniformBuffersMemory[i], nullptr);
-		}
-
+		
 		vkDestroySampler(device.getLogicalDevice(), defaultTexture.sampler, nullptr);
 		vkDestroyImageView(device.getLogicalDevice(), defaultTexture.view, nullptr);
 		vkDestroyImage(device.getLogicalDevice(), defaultTexture.image, nullptr);
@@ -35,30 +25,25 @@ namespace v {
 
 	void Terrain::draw(VkCommandBuffer cmd) {
 
-
-		VkBuffer buffers[] = { vertexBuffer };
+		VkBuffer buffers[] = { vertexBuffer->getBuffer()};
 		VkDeviceSize offsets[] = { 0 };
 
 		vkCmdBindVertexBuffers(cmd, 0, 1, buffers, offsets);
-		vkCmdBindIndexBuffer(cmd, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(cmd, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-
 
 	}
 
 	void Terrain::generate() {
 
-
 		int width, height, nChannels;
-		unsigned char* data = stbi_load("textures/szdd.png",
+		unsigned char* data = stbi_load("textures/mo2.png",
 			&width, &height, &nChannels,
 			0);
-
 
 		float yScale = 64.0f / 256.0f, yShift = 16.0f;
 		int rez = 1;
 		unsigned bytePerPixel = nChannels;
-
 
 		for (int i = 0; i < height; i++)
 		{
@@ -74,7 +59,6 @@ namespace v {
 				vertices.push_back(vertex);
 			}
 		}
-
 		stbi_image_free(data);
 
 		for (int y = 0; y < height - 1; ++y) {
@@ -93,8 +77,6 @@ namespace v {
 				indices.push_back(bottomRight);
 			}
 		}
-
-
 
 		/*CALCULATE NORMALS*/
 		for (size_t i = 0; i < indices.size(); i += 3) {
@@ -118,6 +100,7 @@ namespace v {
 		}
 
 	}
+
 	glm::vec3 Terrain::CalculateNormal(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3) {
 		glm::vec3 edge1 = v2 - v1;
 		glm::vec3 edge2 = v3 - v1;
@@ -126,115 +109,82 @@ namespace v {
 
 	void Terrain::createVertexBuffer() {
 
-		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+		uint32_t vertexCount = static_cast<uint32_t>(vertices.size());
+		uint32_t vertexSize = sizeof(vertices[0]);
+		VkDeviceSize bufferSize = vertexSize * vertexCount;
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		Buffer stagingBuffer{ device, bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
 
-		void* data;
-		vkMapMemory(device.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, vertices.data(), (size_t)bufferSize);
-		vkUnmapMemory(device.getLogicalDevice(), stagingBufferMemory);
+		stagingBuffer.map();
+		stagingBuffer.writeToBuffer((void*)vertices.data());
 
-		Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+		vertexBuffer = std::make_unique<Buffer>(device, bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		Helper::copyBuffer(device, stagingBuffer, vertexBuffer, bufferSize);
-
-		vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
-		vkFreeMemory(device.getLogicalDevice(), stagingBufferMemory, nullptr);
+		Helper::copyBuffer(device, stagingBuffer.getBuffer(), vertexBuffer->getBuffer(), bufferSize);
 
 	}
 	void Terrain::createIndexBuffer() {
-		VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		uint32_t indexCount = static_cast<uint32_t>(indices.size());
+		uint32_t indexSize = sizeof(indices[0]);
+		VkDeviceSize bufferSize = indexSize * indexCount;
 
-		void* data;
-		vkMapMemory(device.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, indices.data(), (size_t)bufferSize);
-		vkUnmapMemory(device.getLogicalDevice(), stagingBufferMemory);
+		Buffer stagingBuffer{ device, bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
 
-		Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+		stagingBuffer.map();
+		stagingBuffer.writeToBuffer((void*)indices.data());
 
-		Helper::copyBuffer(device, stagingBuffer, indexBuffer, bufferSize);
+		indexBuffer = std::make_unique<Buffer>(device, bufferSize,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
-		vkFreeMemory(device.getLogicalDevice(), stagingBufferMemory, nullptr);
+		Helper::copyBuffer(device, stagingBuffer.getBuffer(), indexBuffer->getBuffer(), bufferSize);
+
 	}
-
 
 	/**/
 	void Terrain::createUniformBuffers() {
-		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
 		modelMxUniform.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-		uniformBuffersMemory.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+		VkDeviceSize bufferSize = sizeof(TerrainUniformBufferObject);
 
-		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-			Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, modelMxUniform[i], uniformBuffersMemory[i]);
+		for (int i = 0; i < modelMxUniform.size(); i++) {
+			modelMxUniform[i] = std::make_unique<Buffer>(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT  | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+			modelMxUniform[i]->map();
 		}
 	}
 
-
-
-
+	
 	void Terrain::updateUniformBuffer(uint32_t currentFrame, bool spin) {
-		static auto startTime = std::chrono::high_resolution_clock::now();
 
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-		UniformBufferObject ubo{};
-
-
-		//spin == true ?
-			//ubo.modelmx = glm::rotate(glm::translate(glm::mat4(1.0f), offset), time * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)) :
+		TerrainUniformBufferObject ubo{};
 		ubo.modelmx = glm::translate(glm::mat4(1.0f), offset);
-
 		ubo.modelmx = glm::scale(ubo.modelmx, scale);
 
-		void* data;
-		vkMapMemory(device.getLogicalDevice(), uniformBuffersMemory[currentFrame], 0, sizeof(ubo), 0, &data);
-		memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(device.getLogicalDevice(), uniformBuffersMemory[currentFrame]);
+
+		//modelMxUniform[currentFrame]->map(); 
+		modelMxUniform[currentFrame]->writeToBuffer(&ubo);
 	}
 
-	void Terrain::createDescriptorSets(VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool) {
-		std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32_t>(SwapChain::MAX_FRAMES_IN_FLIGHT);
-		allocInfo.pSetLayouts = layouts.data();
 
+	void Terrain::createDescriptorSets(DescriptorSetLayout& setLayout, DescriptorPool& pool) {
 		descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-		if (vkAllocateDescriptorSets(device.getLogicalDevice(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
 
-		for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+		for (int i = 0; i < descriptorSets.size(); i++) {
 
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = modelMxUniform[i];
-			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(UniformBufferObject);   //M
+			auto bufferInfo = modelMxUniform[i]->descriptorInfo(sizeof(TerrainUniformBufferObject), 0);
 
-			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
-
-			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = descriptorSets[i];
-			descriptorWrites[0].dstBinding = 1;
-			descriptorWrites[0].dstArrayElement = 0;
-			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrites[0].descriptorCount = 1;
-			descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-
-			vkUpdateDescriptorSets(device.getLogicalDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			DescriptorWriter(setLayout, pool)
+				.createDescriptorWriter(1, &bufferInfo)
+				.build(descriptorSets[i]);
 		}
 	}
+
 
 }

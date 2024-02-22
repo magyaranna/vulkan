@@ -22,24 +22,18 @@
     <Filter Include="Source Files\shadowmaps">
       <UniqueIdentifier>{5ac9159e-4143-45d7-bdcf-e4d7bf82f9a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\vulkan">
+      <UniqueIdentifier>{02aa092f-2551-4a9d-8969-037af8fd58e1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="app.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="device.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="gameobject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="instance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="light.cpp">
@@ -49,12 +43,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swapchain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="texture.cpp">
@@ -68,9 +56,6 @@
     </ClCompile>
     <ClCompile Include="render_system.cpp">
       <Filter>Source Files\render</Filter>
-    </ClCompile>
-    <ClCompile Include="descriptors.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="offscreen_render_system.cpp">
       <Filter>Source Files\render</Filter>
@@ -96,42 +81,51 @@
     <ClCompile Include="shadowmaps.cpp">
       <Filter>Source Files\shadowmaps</Filter>
     </ClCompile>
+    <ClCompile Include="device.cpp">
+      <Filter>Source Files\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="instance.cpp">
+      <Filter>Source Files\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="swapchain.cpp">
+      <Filter>Source Files\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="pipeline.cpp">
+      <Filter>Source Files\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="descriptors.cpp">
+      <Filter>Source Files\vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="timestamp_query.cpp">
+      <Filter>Source Files\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="skybox.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="skybox_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="window.cpp">
+      <Filter>Source Files\vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="buffer.cpp">
+      <Filter>Source Files\vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="window.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="app.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="camera.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="device.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="gameobject.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="helper.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="instance.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="light.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="model.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pipeline.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="swapchain.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="texture.h">
@@ -145,9 +139,6 @@
     </ClInclude>
     <ClInclude Include="render_system.h">
       <Filter>Source Files\render</Filter>
-    </ClInclude>
-    <ClInclude Include="descriptors.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="offscreen_render_system.h">
       <Filter>Source Files\render</Filter>
@@ -182,8 +173,41 @@
     <ClInclude Include="shadowmaps.h">
       <Filter>Source Files\shadowmaps</Filter>
     </ClInclude>
+    <ClInclude Include="device.h">
+      <Filter>Source Files\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="instance.h">
+      <Filter>Source Files\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="swapchain.h">
+      <Filter>Source Files\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline.h">
+      <Filter>Source Files\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="descriptors.h">
+      <Filter>Source Files\vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="timestamp_query.h">
+      <Filter>Source Files\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="pipelinemanager.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skybox.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skybox_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="window.h">
+      <Filter>Source Files\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="buffer.h">
+      <Filter>Source Files\vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="helper.h">
+      <Filter>Source Files\vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -227,6 +251,12 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\gaussblur_cascade.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\skybox.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\skybox.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

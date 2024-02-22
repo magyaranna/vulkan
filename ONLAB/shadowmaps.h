@@ -10,7 +10,7 @@
 namespace v {
 
 #define SHADOW_MAP_CASCADE_COUNT 4
-#define SHADOW_MAP_DIM 2048
+#define SHADOW_MAP_DIM 3000 //3000
 
 	class ShadowMap {
 	protected:
@@ -41,7 +41,7 @@ namespace v {
 
 
 	class DepthShadowMap : public ShadowMap {
-
+		
 		void createFramebufferResources(VkRenderPass renderPass);
 
 	public:
@@ -56,12 +56,10 @@ namespace v {
 
 		void createFramebufferResources(VkRenderPass renderPass);
 	public:
-	//	static const int dim =3000;
+		//static const int dim = 1000;
 		ColorShadowMap(Device& device, uint32_t binding, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool, VkRenderPass renderPass);
 		~ColorShadowMap();
 	};
-
-
 
 
 	class CascadeShadowMap : public ShadowMap {
@@ -69,7 +67,7 @@ namespace v {
 		void createFramebufferResources(VkRenderPass renderPass);
 
 	public:
-
+		//static const int dim = 5000;
 		std::array<VkImageView, SHADOW_MAP_CASCADE_COUNT> views;
 		std::array<VkFramebuffer, SHADOW_MAP_CASCADE_COUNT> frameBuffers;
 
@@ -86,7 +84,7 @@ namespace v {
 		void createFramebufferResources(VkRenderPass renderPass);
 
 	public:
-	//	static const int dim = 1000;
+		//static const int dim = 1000;
 
 		std::array<VkImageView, SHADOW_MAP_CASCADE_COUNT> views;
 		std::array<VkFramebuffer, SHADOW_MAP_CASCADE_COUNT> frameBuffers;

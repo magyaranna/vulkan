@@ -192,9 +192,6 @@ namespace v {
     }
 
 
-
-
-
     void Model::createVertexBuffer(MeshPart& meshpart) {
         VkDeviceSize bufferSize = sizeof(meshpart.vertices[0]) * meshpart.vertices.size();
 
