@@ -6,6 +6,8 @@
 #include "pipeline.h"
 #include "renderinfo.h"
 
+#include "pipelinemanager.h"
+
 namespace v {
 
 
@@ -13,8 +15,10 @@ namespace v {
 	private:
 
 		Device& device;
+		PipelineManager& pipelineManager;
 
 		std::unique_ptr<Pipeline> pipeline;
+		std::unique_ptr<Pipeline> pipelineWireFrame;
 		VkPipelineLayout pipelineLayout;
 
 		std::array<int, 7> pushConstants;
@@ -27,13 +31,10 @@ namespace v {
 
 	public:
 
-		TerrainRenderSystem(Device& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts);
+		TerrainRenderSystem(Device& device, PipelineManager& manager, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts);
 		~TerrainRenderSystem();
 
 		void renderTerrain(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderInfo);
-		void recreatePipeline(VkRenderPass renderPass);
-
-
 	};
 
 }

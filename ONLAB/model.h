@@ -18,6 +18,7 @@
 
 #include "texture.h"
 #include "Vertex.h"
+#include "buffer.h"
 
 
 
@@ -30,11 +31,8 @@ namespace v {
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 
-		VkBuffer vertexBuffer;
-		VkDeviceMemory vertexBufferMemory;
-		VkBuffer indexBuffer;
-		VkDeviceMemory indexBufferMemory;
-
+		Buffer* vertexBuffer;
+		Buffer* indexBuffer;
 	};
 
 	class Model {
@@ -50,10 +48,10 @@ namespace v {
 		void createVertexBuffer(MeshPart& meshpart);
 		void createIndexBuffer(MeshPart& meshpart);
 
-		void loadModel(VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool);
+		void loadModel(DescriptorSetLayout& textlayout, DescriptorSetLayout& normallayout, DescriptorPool& pool);
 
 	public:
-		Model(Device& device, const std::string MODEL_PATH, VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool);
+		Model(Device& device, const std::string MODEL_PATH, DescriptorSetLayout& textlayout, DescriptorSetLayout& normallayout, DescriptorPool& pool);
 		~Model();
 
 		void draw(VkCommandBuffer commandBuffer, VkPipelineLayout layout, int currentframe, bool shadow, int set);

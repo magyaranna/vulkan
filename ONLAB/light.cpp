@@ -51,7 +51,7 @@ namespace v {
 		descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
 
 		for (int i = 0; i < descriptorSets.size(); i++) {
-			auto bufferInfo  = lightUniform[i]->descriptorInfo();
+			auto bufferInfo  = lightUniform[i]->descriptorInfo(sizeof(LightUniformBuffer));
 
 			DescriptorWriter(descriptorSetLayout, descriptorPool)
 				.createDescriptorWriter(0, &bufferInfo)

@@ -62,12 +62,30 @@ namespace v {
         ImGui::Begin("GUI");
 
         ImGui::StyleColorsClassic();
+
+        ImGui::PushStyleColor(ImGuiCol_Button, (ImVec4)ImColor::HSV(0.7f, 0.6f, 0.6f));
+        if (ImGui::Button("Reload")) {
+            clicked++;
+        }
+        ImGui::PopStyleColor(1);
+
+        ImGui::SeparatorText("");
        
         ImGui::Checkbox("display normalmap", &displayNormalmap);
-        ImGui::Checkbox("spin", &spin);
+       
 
         static ImGuiSliderFlags flags = ImGuiSliderFlags_None;
 
+
+        ImGui::Text("displacementFactor:");
+        ImGui::SliderFloat(" ", &dFactor, 0.0f, 100.0f, "%.3f", flags);
+
+        ImGui::Checkbox("wireframe", &wireframe);
+
+        ImGui::SeparatorText("");
+
+
+        
         if (ImGui::CollapsingHeader("Shadow Mapping", ImGuiTreeNodeFlags_None))
         {
             ImGui::Text("IsItemHovered: %d", ImGui::IsItemHovered());
@@ -91,33 +109,34 @@ namespace v {
             ImGui::Text("");
             ImGui::Checkbox("blur", &blur);
 
+            // Sliders
+            static float slider_f = 0.5f;
+            static int slider_i = 50;
+
+            glm::vec3 dir = light.getDir();
+            static float x = dir.x, y = dir.y, z = dir.z;
+
+            ImGui::Text("");
+
+            ImGui::Text("Light direction: ");
+
+
+            ImGui::SliderFloat("X", &x, -1.0f, 1.0f, "%.3f", flags);
+            // ImGui::SliderFloat("y (-1 -> 1)", &y, -1.0f, 1.0f, "%.3f", flags);
+            ImGui::SliderFloat("Z", &z, -1.0f, 1.0f, "%.3f", flags);
+
+            light.setDirection(glm::vec3(x, -1, z));
+            ImGui::Text("");
+
+            ImGui::Checkbox("getQueryResults", &getQueryResults);
+            //ImGui::Checkbox("stopQuery", &stopQuery);
         }
-
-        // Sliders
-        static float slider_f = 0.5f;
-        static int slider_i = 50;
-
-        glm::vec3 dir = light.getDir();
-        static float x = dir.x, y = dir.y, z = dir.z;
-
-        ImGui::Text("");
-
-        ImGui::Text("Light direction: ");
-
-
-        ImGui::SliderFloat("X", &x, -1.0f, 1.0f, "%.3f", flags);
-        // ImGui::SliderFloat("y (-1 -> 1)", &y, -1.0f, 1.0f, "%.3f", flags);
-        ImGui::SliderFloat("Z", &z, -1.0f, 1.0f, "%.3f", flags);
-
-        light.setDirection(glm::vec3(x, -1, z));
-        ImGui::Text("");
-
-        ImGui::Checkbox("getQueryResults", &getQueryResults);
-        //ImGui::Checkbox("stopQuery", &stopQuery);
+        ImGui::Checkbox("spin", &spin);
+        
         
 
 
-        //ImGui::ShowDemoWindow();
+       // ImGui::ShowDemoWindow();
         ImGui::End();
 
         ImGui::Render();

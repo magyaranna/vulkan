@@ -102,7 +102,7 @@ namespace v {
             renderinfo.gameobjects.at(i)->model->draw(cmd, pipelineLayout, currentFrame, false, 1);
         }
 
-        renderinfo.gui.renderGui(cmd);
+       
 
 
     }

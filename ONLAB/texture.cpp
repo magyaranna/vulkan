@@ -8,7 +8,7 @@
 
 namespace v {
 
-    Texture::Texture(Device& device, VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool, std::string texture, std::string normal) : device{ device } {
+    Texture::Texture(Device& device, DescriptorSetLayout& textlayout, DescriptorSetLayout& normallayout, DescriptorPool& pool, std::string texture, std::string normal) : device{ device } {
 
         texture_path = texture;
         normalmap_path = normal;
@@ -181,79 +181,33 @@ namespace v {
 
 
 
-    void Texture::createDescriptorSets(VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool descriptorPool) {
-
-        std::vector<VkDescriptorSetLayout> layouts(SwapChain::MAX_FRAMES_IN_FLIGHT, textlayout);
-        VkDescriptorSetAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = descriptorPool;
-        allocInfo.descriptorSetCount = static_cast<uint32_t>(SwapChain::MAX_FRAMES_IN_FLIGHT);
-        allocInfo.pSetLayouts = layouts.data();
+    void Texture::createDescriptorSets(DescriptorSetLayout& textlayout, DescriptorSetLayout& normallayout, DescriptorPool& pool) {
 
         descriptorSetsTexture.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-        if (vkAllocateDescriptorSets(device.getLogicalDevice(), &allocInfo, descriptorSetsTexture.data()) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate descriptor sets!");
-        }
-
-        for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-
-
+        for (int i = 0; i < descriptorSetsTexture.size(); i++) {
             VkDescriptorImageInfo textureImageInfo{};       //texture
             textureImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             textureImageInfo.imageView = texture.view;
             textureImageInfo.sampler = texture.sampler;
 
-        
-            std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
-
-            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = descriptorSetsTexture[i];
-            descriptorWrites[0].dstBinding = 0;
-            descriptorWrites[0].dstArrayElement = 0;
-            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites[0].descriptorCount = 1;
-            descriptorWrites[0].pImageInfo = &textureImageInfo;
-
-
-            vkUpdateDescriptorSets(device.getLogicalDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+            DescriptorWriter(textlayout, pool)
+                .createDescriptorWriter(0, &textureImageInfo)
+                .build(descriptorSetsTexture[i]);
         }
-
-
-        std::vector<VkDescriptorSetLayout> layoutsNormal(SwapChain::MAX_FRAMES_IN_FLIGHT, normallayout);
-        VkDescriptorSetAllocateInfo allocInfoNormal{};
-        allocInfoNormal.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfoNormal.descriptorPool = descriptorPool;
-        allocInfoNormal.descriptorSetCount = static_cast<uint32_t>(SwapChain::MAX_FRAMES_IN_FLIGHT);
-        allocInfoNormal.pSetLayouts = layoutsNormal.data();
+      
 
         descriptorSetsNormalmap.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-        if (vkAllocateDescriptorSets(device.getLogicalDevice(), &allocInfoNormal, descriptorSetsNormalmap.data()) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate descriptor sets!");
-        }
-
-        for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
-
-
+        for (int i = 0; i < descriptorSetsNormalmap.size(); i++) {
             VkDescriptorImageInfo textureImageInfo{};       //texture
             textureImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             textureImageInfo.imageView = texture.view;
             textureImageInfo.sampler = texture.sampler;
 
-
-            std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
-
-            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[0].dstSet = descriptorSetsNormalmap[i];
-            descriptorWrites[0].dstBinding = 0;
-            descriptorWrites[0].dstArrayElement = 0;
-            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites[0].descriptorCount = 1;
-            descriptorWrites[0].pImageInfo = &textureImageInfo;
-
-
-            vkUpdateDescriptorSets(device.getLogicalDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+            DescriptorWriter(normallayout, pool)
+                .createDescriptorWriter(0, &textureImageInfo)
+                .build(descriptorSetsNormalmap[i]);
         }
-
+       
     }
 
     std::vector<VkDescriptorSet> Texture::createDefaultTextureDescriptorSet(Device& device, TextureResources& textureResources, VkDescriptorSetLayout layout, VkDescriptorPool pool ) {

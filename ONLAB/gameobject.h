@@ -17,7 +17,8 @@
 #include "device.h"
 #include "swapchain.h"
 #include "model.h"
-
+#include "buffer.h"
+#include "descriptors.h"
 
 
 namespace v {
@@ -25,40 +26,33 @@ namespace v {
 
 	class GameObject {
 	private:
-
-
 		Device& device;
-
 
 		glm::vec3 offset;
 		glm::vec3 scale;
 
 		unsigned int id;
 
-		std::vector<VkBuffer> modelMxUniform;
-		std::vector<VkDeviceMemory> uniformBuffersMemory;
-
+		std::vector< std::unique_ptr<Buffer>> modelMxUniform;
 		std::vector<VkDescriptorSet> descriptorSets;
 
-
 		void createUniformBuffers();
-		void createDescriptorSets(VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
+		void createDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& pool);
 
 	public:
 
-		GameObject(unsigned int id, Device& device, glm::vec3 scale, glm::vec3 o, VkDescriptorSetLayout descriptorLayout, VkDescriptorPool descriptorPool);
+		GameObject(unsigned int id, Device& device, glm::vec3 scale, glm::vec3 offset, DescriptorSetLayout& layout, DescriptorPool& pool);
 		~GameObject();
 
 		std::shared_ptr<Model> model{};
 
-		struct UniformBufferObject {
+		struct GameObjectUniformBUffer {
 			glm::mat4 modelmx;
 		};
 
 		void updateUniformBuffer(uint32_t currentImage, bool spin);
 
 		/*getters*/
-		VkBuffer getUniformBuffers(size_t i) { return modelMxUniform[i]; }
 		VkDescriptorSet& getDescriptorSet(int i) {
 			return descriptorSets[i];
 		}

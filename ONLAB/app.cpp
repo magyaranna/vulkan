@@ -9,7 +9,7 @@ namespace v {
     App::App() {
         glfwSetWindowUserPointer(window.getWindow(), this);
         glfwSetFramebufferSizeCallback(window.getWindow(), framebufferResizeCallback);
-
+        pipelineManager.compile();
     }
 
     App::~App() {
@@ -22,14 +22,14 @@ namespace v {
 
         /*camera*/
         Binding camera_binding = Binding()
-            .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+            .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL);
         std::unique_ptr<DescriptorSetLayout> camera_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, camera_binding.bindings);
         camera = std::make_unique<Camera>(device, *renderer.swapchain, window.getWidth(),
             window.getHeight(), glm::vec3(0.0f, 10.0f, 10.0f), *camera_descriptorLayout, descriptorPool);
 
         /*texture*/
         auto texture_bindings = Binding()
-            .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);  //texture
+            .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);  //texture
         std::unique_ptr<DescriptorSetLayout> texture_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, texture_bindings.bindings);
        
         /*normalmap*/
@@ -37,16 +37,16 @@ namespace v {
             .addBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT); //normalmap
         std::unique_ptr<DescriptorSetLayout> normalmap_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, normalmap_bindings.bindings);
 
-        std::shared_ptr<Model> tree_model = std::make_shared<Model>(device, "models/tree.obj", texture_descriptorLayout->getDescriptorSetLayout(), normalmap_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        std::shared_ptr<Model> tree_model = std::make_shared<Model>(device, "models/tree.obj", *texture_descriptorLayout, *normalmap_descriptorLayout, descriptorPool);
 
 
         /*gameobj*/
         auto gameobject_bindings = Binding()
-            .addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);  
+            .addBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL);
         std::unique_ptr<DescriptorSetLayout> gameobject_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, gameobject_bindings.bindings);
-        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(-10.0f, -3.1f, 0.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        std::unique_ptr<GameObject> obj1 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(-10.0f, -3.1f, 0.0f), *gameobject_descriptorLayout, descriptorPool);
         obj1->model = tree_model;
-        std::unique_ptr<GameObject> obj2 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(14.0f, -3.1f, 2.0f), gameobject_descriptorLayout->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
+        std::unique_ptr<GameObject> obj2 = std::make_unique<GameObject>(0, device, glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(14.0f, -3.1f, 2.0f), *gameobject_descriptorLayout, descriptorPool);
         obj2->model = tree_model;
 
         
@@ -54,7 +54,7 @@ namespace v {
         gameobjects.emplace(1, std::move(obj2));
 
         /*terrain*/
-        terrain = std::make_unique<Terrain>(device, glm::vec3(0.5f, 0.5f, 0.5f), *gameobject_descriptorLayout, texture_descriptorLayout->getDescriptorSetLayout(), descriptorPool);
+        terrain = std::make_unique<Terrain>(device, glm::vec3(0.5f, 0.5f, 0.5f), *gameobject_descriptorLayout, *texture_descriptorLayout, descriptorPool);
 
         /*light*/
         Binding light_binding = Binding()
@@ -131,14 +131,15 @@ namespace v {
         descriptorLayouts.push_back(vsm_descriptorLayout->getDescriptorSetLayout());  //vsm shadowmap
         descriptorLayouts.push_back(esm_descriptorLayout->getDescriptorSetLayout());  //esm shadowmap
 
+        
+
+        RenderSystem renderSystem{ device, renderer.swapchain->getRenderPass(),descriptorLayouts };
+        TerrainRenderSystem terrainRenderSystem{ device, pipelineManager, renderer.swapchain->getRenderPass(),
+            {descriptorLayouts[0],  descriptorLayouts[3], descriptorLayouts[4], descriptorLayouts[5], descriptorLayouts[6],  descriptorLayouts[7], descriptorLayouts[8], descriptorLayouts[9], descriptorLayouts[1]}};
+
         std::vector<VkDescriptorSetLayout> l;
         l.push_back(camera_descriptorLayout->getDescriptorSetLayout());
         l.push_back(skybox_descriptorLayout->getDescriptorSetLayout());
-
-        RenderSystem renderSystem{ device, renderer.swapchain->getRenderPass(),descriptorLayouts };
-        TerrainRenderSystem terrainRenderSystem{ device,renderer.swapchain->getRenderPass(),
-            {descriptorLayouts[0],  descriptorLayouts[3], descriptorLayouts[4], descriptorLayouts[5], descriptorLayouts[6],  descriptorLayouts[7], descriptorLayouts[8], descriptorLayouts[9] } };
-
         SkyboxRenderSystem skyboxRenderSystem{ device, renderer.swapchain->getRenderPass(), l };
         
 
@@ -151,18 +152,14 @@ namespace v {
 
 
 
-        bool f = false;
         int frameIndex = 0;
         while (!window.shouldClose()) {
 
-            if (gui->getQueryResults && !f) {
-                vkDeviceWaitIdle(device.getLogicalDevice());
-                system("%VULKAN_SDK%/Bin/glslc.exe shaders/terrain.frag -o shaders/terrainFrag.spv");
-                terrainRenderSystem.recreatePipeline(renderer.swapchain->getRenderPass());
-                f = true;
+            if (gui->clicked & 1) {
+                pipelineManager.reload();
+                gui->clicked++;
             }
             
-
             frameIndex = renderer.getFrameIndex();
             glfwPollEvents();
 
@@ -257,8 +254,8 @@ namespace v {
                     
                     terrainRenderSystem.renderTerrain(commandBuffer, frameIndex, renderInfo);
 
-                    renderSystem.renderGameObjects(commandBuffer, frameIndex, renderInfo);
-
+                    //renderSystem.renderGameObjects(commandBuffer, frameIndex, renderInfo);
+                    gui->renderGui(commandBuffer);
                 }
                 renderer.endRenderPass(commandBuffer);
 

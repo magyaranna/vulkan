@@ -12,10 +12,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "descriptors.h"
+
 namespace v {
 
 	struct TextureResources {
-
 		VkImage image;
 		VkDeviceMemory mem;
 		VkImageView view;
@@ -24,11 +25,8 @@ namespace v {
 
 
 	class Texture {
-
 	private:
-
 		Device& device;
-
 
 		std::string texture_path;
 		std::string normalmap_path;
@@ -49,13 +47,11 @@ namespace v {
 		void createNormalMapImageView();
 		void createNormalMapSampler();
 
-		void createDescriptorSets(VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool descriptorPool);
-
-
+		void createDescriptorSets(DescriptorSetLayout& textlayout, DescriptorSetLayout& normallayout, DescriptorPool& pool);
 
 	public:
 
-		Texture(Device& device, VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool, std::string texture, std::string normal);
+		Texture(Device& device, DescriptorSetLayout& textlayout, DescriptorSetLayout& normallayout, DescriptorPool& pool, std::string texture, std::string normal);
 		~Texture();
 
 		void destroy();

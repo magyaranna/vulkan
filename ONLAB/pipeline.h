@@ -25,6 +25,8 @@ namespace v {
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly;
 
+		VkPipelineTessellationStateCreateInfo tessellation;
+
 		VkPipelineViewportStateCreateInfo viewportState;
 
 		std::vector<VkDynamicState> dynamicStates;
@@ -53,7 +55,7 @@ namespace v {
 
 
 
-		void createGraphicsPipeline(const std::string& vert, const std::string& frag,  ConfigInfo& configInfo);
+		void createGraphicsPipeline(const std::string& vert, const std::string& frag,  ConfigInfo& configInfo, const std::string& tesc, const std::string& tese);
 
 		VkShaderModule createShaderModule(const std::vector<char>& code);
 		static std::vector<char> readFile(const std::string& filename);
@@ -61,7 +63,7 @@ namespace v {
 
 	public:
 		
-		Pipeline(Device& device, const std::string& vert, const std::string& frag,  ConfigInfo& configInfo);
+		Pipeline(Device& device, const std::string& vert, const std::string& frag,  ConfigInfo& configInfo, const std::string& tesc = "", const std::string& tese = "");
 		~Pipeline();
 		Pipeline(const Pipeline&) = delete;
 		void operator=(const Pipeline&) = delete;

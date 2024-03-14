@@ -1,17 +1,17 @@
 #pragma once
 
+#define NOMINMAX
+
 #include "vulkan/vulkan.h"
+
 #include <vector>
-#include <array>
+#include <stb_image.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-#include <chrono>
 
 #include "helper.h"
 #include "swapchain.h"
@@ -24,6 +24,16 @@
 namespace v {
 
 
+	struct HeightMap {
+		int width, height;
+		VkImage image;
+		VkDeviceMemory mem;
+		VkImageView view;
+		VkSampler sampler;
+	};
+
+
+
 	class Terrain {
 	private:
 
@@ -32,6 +42,10 @@ namespace v {
 		glm::vec3 offset = glm::vec3(0.0f);
 		glm::vec3 scale;
 
+		HeightMap heightmap;
+		void createHeightMapResources();
+		std::vector<VkDescriptorSet> descriptorSetsHeightMap;
+		void createHeightMapDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool);
 
 		struct TerrainUniformBufferObject {
 			glm::mat4 modelmx;
@@ -51,6 +65,7 @@ namespace v {
 		
 
 		void generate();
+		void generateFromHeightmap();
 		glm::vec3 CalculateNormal(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
 		
 
@@ -58,7 +73,7 @@ namespace v {
 		std::vector<VkDescriptorSet> defaultTextureDescriptorSets;
 
 	public:
-		Terrain(Device& device, glm::vec3 scale, DescriptorSetLayout& setLayout, VkDescriptorSetLayout textLayout, DescriptorPool& pool);
+		Terrain(Device& device, glm::vec3 scale, DescriptorSetLayout& setLayout, DescriptorSetLayout& textLayout, DescriptorPool& pool);
 		~Terrain();
 
 		void updateUniformBuffer(uint32_t currentImage, bool spin);
@@ -68,6 +83,11 @@ namespace v {
 		VkDescriptorSet& getDescriptorSet(int i) {
 			return descriptorSets[i];
 		}
+
+		VkDescriptorSet& getHeightMapDescriptorSet(int i) {
+			return descriptorSetsHeightMap[i];
+		}
+
 		VkDescriptorSet& getDefaultTextureDescriptorSets(int i) {
 			return defaultTextureDescriptorSets[i];
 		}

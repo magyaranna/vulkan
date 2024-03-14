@@ -10,8 +10,8 @@
 
 namespace v {
 
-    Model::Model(Device& device, const std::string MODEL_PATH, VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool) : device{ device }, MODEL_PATH{ MODEL_PATH }
-    {
+    Model::Model(Device& device, const std::string MODEL_PATH, DescriptorSetLayout& textlayout, DescriptorSetLayout& normallayout, DescriptorPool& pool)
+         : device{ device }, MODEL_PATH{ MODEL_PATH }{
 
         loadModel(textlayout, normallayout, pool);
         createBuffers();
@@ -19,18 +19,13 @@ namespace v {
     }
 
     Model::~Model() {
-
-
-
-        for (auto& part : meshparts) {
-            vkDestroyBuffer(device.getLogicalDevice(), part.indexBuffer, nullptr);
-            vkFreeMemory(device.getLogicalDevice(), part.indexBufferMemory, nullptr);
-
-            vkDestroyBuffer(device.getLogicalDevice(), part.vertexBuffer, nullptr);
-            vkFreeMemory(device.getLogicalDevice(), part.vertexBufferMemory, nullptr);
-        }
         for (auto& t : textures) {
             t->destroy();
+        }
+
+        for( auto& part : meshparts){
+            delete part.vertexBuffer;
+            delete part.indexBuffer;
         }
     }
 
@@ -40,7 +35,7 @@ namespace v {
 
         for (auto& part : meshparts) {
 
-            VkBuffer buffers[] = { part.vertexBuffer };
+            VkBuffer buffers[] = { part.vertexBuffer->getBuffer()};
             VkDeviceSize offsets[] = { 0 };
 
             int id = part.matID;
@@ -58,7 +53,7 @@ namespace v {
             
 
             vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
-            vkCmdBindIndexBuffer(commandBuffer, part.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdBindIndexBuffer(commandBuffer, part.indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
             vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(part.indices.size()), 1, 0, 0, 0);
         }
 
@@ -66,7 +61,7 @@ namespace v {
     }
 
 
-    void Model::loadModel(VkDescriptorSetLayout textlayout, VkDescriptorSetLayout normallayout, VkDescriptorPool pool) {
+    void Model::loadModel(DescriptorSetLayout& textlayout, DescriptorSetLayout& normallayout, DescriptorPool& pool) {
         tinyobj::attrib_t attrib;
         std::vector<tinyobj::shape_t> shapes;
         std::vector<tinyobj::material_t> materials;
@@ -193,47 +188,41 @@ namespace v {
 
 
     void Model::createVertexBuffer(MeshPart& meshpart) {
+
         VkDeviceSize bufferSize = sizeof(meshpart.vertices[0]) * meshpart.vertices.size();
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+        Buffer stagingBuffer = Buffer{ device, bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
 
-        void* data;
-        vkMapMemory(device.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, meshpart.vertices.data(), (size_t)bufferSize);
-        vkUnmapMemory(device.getLogicalDevice(), stagingBufferMemory);
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer((void*)meshpart.vertices.data());
 
-        Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, meshpart.vertexBuffer, meshpart.vertexBufferMemory);
+        meshpart.vertexBuffer = new Buffer(device, bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        Helper::copyBuffer(device, stagingBuffer, meshpart.vertexBuffer, bufferSize);
-
-        vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
-        vkFreeMemory(device.getLogicalDevice(), stagingBufferMemory, nullptr);
+        Helper::copyBuffer(device, stagingBuffer.getBuffer(), meshpart.vertexBuffer->getBuffer(), bufferSize);
     }
 
 
     void Model::createIndexBuffer(MeshPart& meshpart) {
         VkDeviceSize bufferSize = sizeof(meshpart.indices[0]) * meshpart.indices.size();
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
-        Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+        Buffer stagingBuffer = Buffer{ device, bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
 
-        void* data;
-        vkMapMemory(device.getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-        memcpy(data, meshpart.indices.data(), (size_t)bufferSize);
-        vkUnmapMemory(device.getLogicalDevice(), stagingBufferMemory);
+        stagingBuffer.map();
+        stagingBuffer.writeToBuffer((void*)meshpart.indices.data());
 
-        Helper::createBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, meshpart.indexBuffer, meshpart.indexBufferMemory);
+        meshpart.indexBuffer = new Buffer(device, bufferSize,
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        Helper::copyBuffer(device, stagingBuffer, meshpart.indexBuffer, bufferSize);
-
-        vkDestroyBuffer(device.getLogicalDevice(), stagingBuffer, nullptr);
-        vkFreeMemory(device.getLogicalDevice(), stagingBufferMemory, nullptr);
+        Helper::copyBuffer(device, stagingBuffer.getBuffer(), meshpart.indexBuffer->getBuffer(), bufferSize);
     }
-
-
+    
 
 
 

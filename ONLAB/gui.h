@@ -11,13 +11,14 @@ namespace v {
 
     public:
 
-        //bool displayShadowmap = false;
         bool pcf = false;
         bool bias = true;
         bool displayNormalmap = false;
         bool spin = false;
-        //bool acneRemoved = true;
-        //bool sponza = false;
+
+        float dFactor = 10.0f;
+        bool wireframe = true;
+
         bool cascade = false;
         bool cascadecolor = false;
         float splitLambda = 0.2f;
@@ -31,6 +32,7 @@ namespace v {
         bool getQueryResults = false;
         bool stopQuery = false;
 
+        int clicked = 0;
 
         Gui(Window& window, Device& device, SwapChain& swapchain, VkDescriptorPool pool);
         ~Gui();

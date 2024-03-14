@@ -8,10 +8,10 @@
 
 namespace v {
 
-    Pipeline::Pipeline(Device& device, const std::string& vert, const std::string& frag, ConfigInfo& configInfo)
+    Pipeline::Pipeline(Device& device, const std::string& vert, const std::string& frag, ConfigInfo& configInfo, const std::string& tesc, const std::string& tese)
         : device{ device } {
 
-        createGraphicsPipeline(vert, frag, configInfo);
+        createGraphicsPipeline(vert, frag, configInfo, tesc, tese);
     }
 
 
@@ -29,8 +29,7 @@ namespace v {
     }
 
 
-    void Pipeline::createGraphicsPipeline(const std::string& vert, const std::string& frag, ConfigInfo& configInfo) {
-
+    void Pipeline::createGraphicsPipeline(const std::string& vert, const std::string& frag, ConfigInfo& configInfo, const std::string& tesc, const std::string& tese) {
 
         assert(configInfo.pipelineLayout != VK_NULL_HANDLE && "no pipelinelayout ");
         assert(configInfo.renderPass != VK_NULL_HANDLE && "no renderapss");
@@ -56,15 +55,46 @@ namespace v {
         fragShaderStageInfo.module = fragShaderModule;
         fragShaderStageInfo.pName = "main";
 
-        VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
+        std::vector< VkPipelineShaderStageCreateInfo> shaderStages;
+        shaderStages.push_back(vertShaderStageInfo);
+        shaderStages.push_back(fragShaderStageInfo);
 
+       
+        VkShaderModule tescShaderModule = VK_NULL_HANDLE;
+        VkShaderModule teseShaderModule = VK_NULL_HANDLE;
+
+        if (tesc != "" && tese != "") {
+            auto tescShaderCode = readFile(tesc);
+            auto teseShaderCode = readFile(tese);
+
+            tescShaderModule = createShaderModule(tescShaderCode);
+            teseShaderModule = createShaderModule(teseShaderCode);
+
+            VkPipelineShaderStageCreateInfo tescShaderStageInfo{};
+            tescShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            tescShaderStageInfo.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+            tescShaderStageInfo.module = tescShaderModule;
+            tescShaderStageInfo.pName = "main";
+
+            VkPipelineShaderStageCreateInfo teseShaderStageInfo{};
+            teseShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+            teseShaderStageInfo.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+            teseShaderStageInfo.module = teseShaderModule;
+            teseShaderStageInfo.pName = "main";
+            shaderStages.push_back(tescShaderStageInfo);
+            shaderStages.push_back(teseShaderStageInfo);
+
+         //   vkDestroyShaderModule(device.getLogicalDevice(), tescShaderModule, nullptr);
+         //   vkDestroyShaderModule(device.getLogicalDevice(), teseShaderModule, nullptr);
+        }
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
-        pipelineInfo.pStages = shaderStages;
+        pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+        pipelineInfo.pStages = shaderStages.data();
         pipelineInfo.pVertexInputState = &configInfo.vertexInputInfo;
         pipelineInfo.pInputAssemblyState = &configInfo.inputAssembly;
+        pipelineInfo.pTessellationState = &configInfo.tessellation;
         pipelineInfo.pViewportState = &configInfo.viewportState;
         pipelineInfo.pRasterizationState = &configInfo.rasterizer;
         pipelineInfo.pMultisampleState = &configInfo.multisampling;
@@ -80,6 +110,10 @@ namespace v {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
 
+        if (tesc != "" && tese != "") {
+            vkDestroyShaderModule(device.getLogicalDevice(), tescShaderModule, nullptr);
+            vkDestroyShaderModule(device.getLogicalDevice(), teseShaderModule, nullptr);
+        }
 
         vkDestroyShaderModule(device.getLogicalDevice(), fragShaderModule, nullptr);
         vkDestroyShaderModule(device.getLogicalDevice(), vertShaderModule, nullptr);
@@ -98,7 +132,6 @@ namespace v {
         configInfo.attributeDescriptions = Vertex::getAttributeDescriptions();
 
         configInfo.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
         configInfo.vertexInputInfo.vertexBindingDescriptionCount = 1;
         configInfo.vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(configInfo.attributeDescriptions.size());
         configInfo.vertexInputInfo.pVertexBindingDescriptions = &configInfo.bindingDescriptions;
@@ -109,6 +142,9 @@ namespace v {
         configInfo.inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         configInfo.inputAssembly.primitiveRestartEnable = VK_FALSE;
 
+       // configInfo.tessellation.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+       // configInfo.tessellation.patchControlPoints = 1;
+        
 
         configInfo.viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
         configInfo.viewportState.viewportCount = 1;

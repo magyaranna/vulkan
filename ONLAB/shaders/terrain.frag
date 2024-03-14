@@ -5,6 +5,19 @@ layout(set = 4, binding = 0) uniform sampler2DArray  cascadeShadowSampler;
 layout(set = 6, binding = 0) uniform sampler2D VSMshadowSampler;
 layout(set = 7, binding = 0) uniform sampler2D ESMshadowSampler;
 
+
+layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
+    mat4 view;
+    mat4 proj;
+} g;
+
+
+layout(set = 1,  binding = 1) uniform UniformBufferObject {	
+    mat4 model;  
+
+} s;
+
+
 layout(set = 2, binding = 0) uniform UniformBufferLightVP {
     mat4 view;
     mat4 proj;
@@ -33,6 +46,7 @@ layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec3 worldPos;
 layout(location = 3) in vec3 viewPos;
+layout(location = 4) in float height;
 
 layout(location = 0) out vec4 outColor;
 
@@ -168,7 +182,7 @@ float cascadeFilterPCF(uint cascadeIndex, vec3 normal, vec3 lightDir)
 
 void main(){
 
-	vec3 normal = normalize(fragNormal);
+	vec3 normal = fragNormal;
 	float shading = dot(normal, vec3(0.0, 1.0, 0.0));
     vec3 green = vec3(0.416,0.529,0.369);
 
@@ -183,24 +197,10 @@ void main(){
        color = vec3(0.808,0.51,0.655) * shading;
     }
 
-
-
-
     /*Shadow*/
     float shadow = 0;
 
 	if(p.cascade == 1 ){
-
-       /* float depthValue = viewPos.z;
-        int cascadeIndex = 3;
-        for (int i = 0; i < 3; ++i)
-        {
-            if (depthValue < u.cascadeSplits[i])
-            {
-                cascadeIndex = i;
-                break;
-            }
-        }*/
 
         uint cascadeIndex = 0;
 	    for(uint i = 0; i < 3; ++i) {
@@ -208,8 +208,7 @@ void main(){
 			    cascadeIndex = i + 1;
 		    }
         }
-	    
-
+	   
         vec4 lightSpacePos = u.cascadeViewProjMat[cascadeIndex] * vec4(worldPos, 1.0);
 
         if(p.vsm == 1){
@@ -278,9 +277,10 @@ void main(){
         }
     }
 
-    outColor = vec4(shadow * color.rgb,1.0 );
-    //outColor = vec4(shadow * vec3(1.0,0.0,0.0) ,1.0 );
-	
+   outColor = vec4( color.rgb,1.0 );
+    //outColor = vec4( normal ,1.0 );
+	//outColor = vec4( vec3(height, height, height) ,1.0 );
+    //outColor = vec4( 0.0, 0.0, 0.0 ,1.0 );
 }
 
 

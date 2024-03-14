@@ -29,6 +29,8 @@
 #include "skybox.h"
 #include "skybox_render_system.h"
 
+#include "pipelinemanager.h"
+
 namespace v {
 
 
@@ -43,6 +45,7 @@ namespace v {
         Instance instance{ window };
         Device device{ instance };
         Renderer renderer{ window,device, instance };
+        PipelineManager pipelineManager{device};
 
 
         DescriptorPool descriptorPool{ device,2 };  
