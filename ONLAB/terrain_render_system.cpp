@@ -38,8 +38,14 @@ namespace v {
         pushConstantRange2.offset = sizeof(pushConstants);
         pushConstantRange2.size = sizeof(float);
 
+        VkPushConstantRange pushConstantRange3 = {};
+        pushConstantRange3.stageFlags = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+        pushConstantRange3.offset = sizeof(pushConstants)+ sizeof(float);
+        pushConstantRange3.size = sizeof(pushConstantTesc);
+
         ranges.push_back(pushConstantRange1);
         ranges.push_back(pushConstantRange2);
+        ranges.push_back(pushConstantRange3);
 
         pipelineLayoutInfo.pPushConstantRanges = ranges.data();
         pipelineLayoutInfo.pushConstantRangeCount = ranges.size();
@@ -69,7 +75,7 @@ namespace v {
             configinfo.renderPass = renderPass;
 
             //configinfo.rasterizer.polygonMode = VK_POLYGON_MODE_LINE;     
-          // configinfo.rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;           
+           //configinfo.rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;           
 
             configinfo.multisampling.rasterizationSamples = device.getMSAASampleCountFlag();
             configinfo.multisampling.sampleShadingEnable = VK_TRUE;
@@ -135,8 +141,11 @@ namespace v {
         renderInfo.gui.bias == true ? pushConstants[6] = 1 : pushConstants[6] = 0;
         vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstants), pushConstants.data());
 
-        std::array<float, 1> constants = { renderInfo.gui.dFactor };
-        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, 28, sizeof(float), constants.data());
+        std::array<float, 1> constants1 = { renderInfo.gui.dFactor };
+        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, 28, sizeof(float), constants1.data());
+
+        std::array<pushConstantTesc, 1> constants2 = { {renderInfo.viweport, renderInfo.gui.tessFactor} };
+        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, 32, sizeof(pushConstantTesc), constants2.data());
 
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderInfo.camera->getDescriptorSet(currentFrame), 0, nullptr);
@@ -156,6 +165,8 @@ namespace v {
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &renderInfo.terrain->getDescriptorSet(currentFrame), 0, nullptr);
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 8, 1, &renderInfo.terrain->getHeightMapDescriptorSet(currentFrame), 0, nullptr);
+
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 9, 1, &renderInfo.terrain->getNormalMapDescriptorSet(currentFrame), 0, nullptr);
 
 
         renderInfo.terrain->draw(cmd);

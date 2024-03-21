@@ -32,6 +32,7 @@ namespace v {
 
 		void createColorRenderPass();
 		void createDepthRenderPass();
+		void createNormalmapRenderPass();
 
 	public:
 
@@ -43,7 +44,7 @@ namespace v {
 		std::unique_ptr<SwapChain> swapchain;
 		VkRenderPass colorRenderPass;
 		VkRenderPass depthRenderPass;
-
+		VkRenderPass normalRenderPass;
 
 		VkCommandBuffer beginFrame();
 		void endFrame();

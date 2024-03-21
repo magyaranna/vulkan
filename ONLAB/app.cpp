@@ -25,7 +25,7 @@ namespace v {
             .addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL);
         std::unique_ptr<DescriptorSetLayout> camera_descriptorLayout = std::make_unique<DescriptorSetLayout>(device, camera_binding.bindings);
         camera = std::make_unique<Camera>(device, *renderer.swapchain, window.getWidth(),
-            window.getHeight(), glm::vec3(0.0f, 10.0f, 10.0f), *camera_descriptorLayout, descriptorPool);
+            window.getHeight(), glm::vec3(0.0f, 50.0f, 0.0f), *camera_descriptorLayout, descriptorPool);
 
         /*texture*/
         auto texture_bindings = Binding()
@@ -54,7 +54,7 @@ namespace v {
         gameobjects.emplace(1, std::move(obj2));
 
         /*terrain*/
-        terrain = std::make_unique<Terrain>(device, glm::vec3(0.5f, 0.5f, 0.5f), *gameobject_descriptorLayout, *texture_descriptorLayout, descriptorPool);
+        terrain = std::make_unique<Terrain>(device, glm::vec3(0.5f, 0.5f, 0.5f), *gameobject_descriptorLayout, *texture_descriptorLayout, descriptorPool, renderer.normalRenderPass);
 
         /*light*/
         Binding light_binding = Binding()
@@ -135,7 +135,8 @@ namespace v {
 
         RenderSystem renderSystem{ device, renderer.swapchain->getRenderPass(),descriptorLayouts };
         TerrainRenderSystem terrainRenderSystem{ device, pipelineManager, renderer.swapchain->getRenderPass(),
-            {descriptorLayouts[0],  descriptorLayouts[3], descriptorLayouts[4], descriptorLayouts[5], descriptorLayouts[6],  descriptorLayouts[7], descriptorLayouts[8], descriptorLayouts[9], descriptorLayouts[1]}};
+            {descriptorLayouts[0],  descriptorLayouts[3], descriptorLayouts[4], descriptorLayouts[5], descriptorLayouts[6],  descriptorLayouts[7],
+            descriptorLayouts[8], descriptorLayouts[9], descriptorLayouts[1], descriptorLayouts[1]}};
 
         std::vector<VkDescriptorSetLayout> l;
         l.push_back(camera_descriptorLayout->getDescriptorSetLayout());
@@ -150,7 +151,8 @@ namespace v {
         BlurSystem blurSystem{ device, 20, {blur_descriptorLayouts->getDescriptorSetLayout()}, blur_descriptorLayouts->getDescriptorSetLayout(), descriptorPool.getDescriptorPool(), renderer.colorRenderPass };
     
 
-
+        Normalmap_RenderSystem normalmapSystem{ device, pipelineManager,{ descriptorLayouts[1] }, renderer.normalRenderPass }; 
+        normalmapSystem.make_normalmap(*terrain, renderer.normalRenderPass);
 
         int frameIndex = 0;
         while (!window.shouldClose()) {
@@ -242,6 +244,7 @@ namespace v {
                         csm = expCascadeShadowMap.getDescriptorSet(frameIndex);
 
                     RenderInfo renderInfo{
+                        glm::vec2(window.getExtent().height, window.getExtent().width),
                         camera, light, *gui, terrain, gameobjects,
                         simpleDepthShadowMap.getDescriptorSet(frameIndex),
                         csm,
@@ -250,7 +253,7 @@ namespace v {
                         expShadowMap.getDescriptorSet(frameIndex)
                     };
 
-                    skyboxRenderSystem.drawSkybox(commandBuffer, frameIndex, *skybox, *camera);
+                    //skyboxRenderSystem.drawSkybox(commandBuffer, frameIndex, *skybox, *camera);
                     
                     terrainRenderSystem.renderTerrain(commandBuffer, frameIndex, renderInfo);
 

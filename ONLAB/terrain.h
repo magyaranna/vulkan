@@ -32,6 +32,14 @@ namespace v {
 		VkSampler sampler;
 	};
 
+	struct NormalMap {
+		VkImage image;
+		VkDeviceMemory mem;
+		VkImageView view;
+		VkSampler sampler;
+		VkFramebuffer framebuffer;
+	};
+
 
 
 	class Terrain {
@@ -42,10 +50,15 @@ namespace v {
 		glm::vec3 offset = glm::vec3(0.0f);
 		glm::vec3 scale;
 
-		HeightMap heightmap;
+		
+
 		void createHeightMapResources();
 		std::vector<VkDescriptorSet> descriptorSetsHeightMap;
 		void createHeightMapDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool);
+
+		void createNormalMapResources(VkRenderPass& renderPass);
+		std::vector<VkDescriptorSet> descriptorSetsNormalMap;
+		void createNormalMapDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool);
 
 		struct TerrainUniformBufferObject {
 			glm::mat4 modelmx;
@@ -73,8 +86,12 @@ namespace v {
 		std::vector<VkDescriptorSet> defaultTextureDescriptorSets;
 
 	public:
-		Terrain(Device& device, glm::vec3 scale, DescriptorSetLayout& setLayout, DescriptorSetLayout& textLayout, DescriptorPool& pool);
+		Terrain(Device& device, glm::vec3 scale, DescriptorSetLayout& setLayout, DescriptorSetLayout& textLayout, DescriptorPool& pool, VkRenderPass& renderPass);
 		~Terrain();
+
+		HeightMap heightmap;
+
+		NormalMap normalmap;
 
 		void updateUniformBuffer(uint32_t currentImage, bool spin);
 		void draw(VkCommandBuffer cmd);
@@ -86,6 +103,10 @@ namespace v {
 
 		VkDescriptorSet& getHeightMapDescriptorSet(int i) {
 			return descriptorSetsHeightMap[i];
+		}
+
+		VkDescriptorSet& getNormalMapDescriptorSet(int i) {
+			return descriptorSetsNormalMap[i];
 		}
 
 		VkDescriptorSet& getDefaultTextureDescriptorSets(int i) {

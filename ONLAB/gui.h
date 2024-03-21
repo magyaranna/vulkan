@@ -13,10 +13,11 @@ namespace v {
 
         bool pcf = false;
         bool bias = true;
-        bool displayNormalmap = false;
+        bool displayNormalmap = true;
         bool spin = false;
 
         float dFactor = 10.0f;
+        float tessFactor = 7.5f;
         bool wireframe = true;
 
         bool cascade = false;

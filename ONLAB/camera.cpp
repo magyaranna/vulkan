@@ -4,11 +4,15 @@
 
 namespace v {
 
-	Camera::Camera(Device& device, SwapChain& swapChain, int w, int h, glm::vec3 p, DescriptorSetLayout& layout, DescriptorPool& pool) 
-		: device{ device }, swapChain{ swapChain } , width {w}, height{ h}, pos{ p} {
+	Camera::Camera(Device& device, SwapChain& swapChain, int w, int h, glm::vec3 p, DescriptorSetLayout& layout, DescriptorPool& pool)
+		: device{ device }, swapChain{ swapChain } , pos{ p} {
 
+		width = swapChain.getSwapChainExtent().width;
+		height = swapChain.getSwapChainExtent().height;
 		createUniformBuffers();
 		createDescriptorSets(layout, pool);
+
+		
 	}
 
 	Camera::~Camera() {}
@@ -16,7 +20,7 @@ namespace v {
 	void Camera::updateUniformBuffer(uint32_t currentFrame) {
 
 		CameraUniformBufferObject ubo{};
-		ubo.view = glm::lookAt(pos, pos + oriantation, up);
+		ubo.view = glm::lookAt(pos - oriantation, pos, up);
 		ubo.proj = glm::perspective(glm::radians(90.0f), swapChain.getSwapChainExtent().width / (float)swapChain.getSwapChainExtent().height, znear, zfar);
 		ubo.proj[1][1] *= -1;
 		matrices = ubo;
@@ -26,6 +30,9 @@ namespace v {
 
 
 	void Camera::Inputs(GLFWwindow* window){
+
+		width = swapChain.getSwapChainExtent().width;
+		height = swapChain.getSwapChainExtent().height;
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
 			pos += speed * oriantation;
@@ -60,13 +67,17 @@ namespace v {
 
 			glfwGetCursorPos(window, &mouseX, &mouseY);
 
-			float alfaX = 100.0 * (float)(mouseY - (height / 2)) / height;
-			float alfaY = 100.0 * (float)(mouseX - (width / 2)) / width;
+			float alfaX = sensitivity * (float)(mouseY - (height / 2)) / height;  
+			float alfaY = sensitivity * (float)(mouseX - (width / 2)) / width;
 
 			//fuggoleges
 			glm::vec3 newOrientation = glm::rotate(oriantation, glm::radians(-alfaX), glm::normalize(glm::cross(oriantation, up)));
 
-			oriantation = newOrientation;
+			// Decides whether or not the next vertical Orientation is legal or not
+			if (abs(glm::angle(newOrientation, up) - glm::radians(90.0f)) <= glm::radians(85.0f))
+			{
+				oriantation = newOrientation;
+			}
 			oriantation = glm::rotate(oriantation, glm::radians(-alfaY), up);
 
 			glfwSetCursorPos(window, (width / 2), (height / 2));

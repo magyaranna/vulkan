@@ -14,6 +14,11 @@ namespace v {
 	class TerrainRenderSystem {
 	private:
 
+		struct pushConstantTesc {
+			glm::vec2 viewport;
+			float tessellationfactor;
+		};
+
 		Device& device;
 		PipelineManager& pipelineManager;
 

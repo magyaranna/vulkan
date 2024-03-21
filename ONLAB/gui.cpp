@@ -74,11 +74,12 @@ namespace v {
         ImGui::Checkbox("display normalmap", &displayNormalmap);
        
 
-        static ImGuiSliderFlags flags = ImGuiSliderFlags_None;
-
-
+     
         ImGui::Text("displacementFactor:");
-        ImGui::SliderFloat(" ", &dFactor, 0.0f, 100.0f, "%.3f", flags);
+        ImGui::SliderFloat("1", &dFactor, 0.0f, 500.0f, "%.3f");
+
+        ImGui::Text("tessellationFactor:");
+        ImGui::SliderFloat("2", &tessFactor, 5.0f, 100, "%.2f");
 
         ImGui::Checkbox("wireframe", &wireframe);
 
@@ -100,7 +101,7 @@ namespace v {
             ImGui::Checkbox("csm color", &cascadecolor);
 
             ImGui::Text("Split Lambda:");
-            ImGui::SliderFloat(" ", &splitLambda, 0.0f, 1.0f, "%.3f", flags);
+            ImGui::SliderFloat(" ", &splitLambda, 0.0f, 1.0f, "%.3f");
 
 
             ImGui::SeparatorText("");
@@ -121,9 +122,9 @@ namespace v {
             ImGui::Text("Light direction: ");
 
 
-            ImGui::SliderFloat("X", &x, -1.0f, 1.0f, "%.3f", flags);
+            ImGui::SliderFloat("X", &x, -1.0f, 1.0f, "%.3f");
             // ImGui::SliderFloat("y (-1 -> 1)", &y, -1.0f, 1.0f, "%.3f", flags);
-            ImGui::SliderFloat("Z", &z, -1.0f, 1.0f, "%.3f", flags);
+            ImGui::SliderFloat("Z", &z, -1.0f, 1.0f, "%.3f");
 
             light.setDirection(glm::vec3(x, -1, z));
             ImGui::Text("");

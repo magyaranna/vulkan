@@ -31,6 +31,8 @@
 
 #include "pipelinemanager.h"
 
+#include "normalmap_render_system.h"
+
 namespace v {
 
 

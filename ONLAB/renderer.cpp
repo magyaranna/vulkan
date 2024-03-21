@@ -11,11 +11,13 @@ namespace v {
 
         createColorRenderPass();
         createDepthRenderPass();
+        createNormalmapRenderPass();
     }
 
     Renderer::~Renderer() {
         vkDestroyRenderPass(device.getLogicalDevice(), colorRenderPass, nullptr);
         vkDestroyRenderPass(device.getLogicalDevice(), depthRenderPass, nullptr);
+        vkDestroyRenderPass(device.getLogicalDevice(), normalRenderPass, nullptr);
     }
 
     void Renderer::createCommandBuffers() {
@@ -224,6 +226,52 @@ namespace v {
         if (vkCreateRenderPass(device.getLogicalDevice(), &renderPassInfo, nullptr, &depthRenderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
         }
+
+    }
+
+    void Renderer::createNormalmapRenderPass() {
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = VK_FORMAT_R8G8B8A8_SRGB;
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+
+        VkAttachmentReference colorAttachmentRef{};
+        colorAttachmentRef.attachment = 0;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+
+        VkSubpassDescription subpassVSM{};
+        subpassVSM.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpassVSM.colorAttachmentCount = 1;
+        subpassVSM.pColorAttachments = &colorAttachmentRef;
+
+        VkSubpassDependency dependencyVSM{};
+        dependencyVSM.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependencyVSM.dstSubpass = 0;
+        dependencyVSM.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependencyVSM.srcAccessMask = 0;
+        dependencyVSM.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependencyVSM.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo renderPassInfoVSM{};
+        renderPassInfoVSM.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfoVSM.attachmentCount = 1;
+        renderPassInfoVSM.pAttachments = &colorAttachment;
+        renderPassInfoVSM.subpassCount = 1;
+        renderPassInfoVSM.pSubpasses = &subpassVSM;
+        renderPassInfoVSM.dependencyCount = 1;
+        renderPassInfoVSM.pDependencies = &dependencyVSM;
+
+        if (vkCreateRenderPass(device.getLogicalDevice(), &renderPassInfoVSM, nullptr, &normalRenderPass) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create render pass!");
+        }
+
 
     }
 

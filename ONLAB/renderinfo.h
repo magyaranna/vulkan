@@ -11,6 +11,7 @@
 namespace v {
 
     struct RenderInfo {
+        glm::vec2 viweport;
         std::unique_ptr<Camera> const& camera;
         std::unique_ptr<Light> const& light;
         Gui& gui;

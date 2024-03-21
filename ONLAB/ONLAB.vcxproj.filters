@@ -111,6 +111,9 @@
     <ClCompile Include="buffer.cpp">
       <Filter>Source Files\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="normalmap_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h">
@@ -209,11 +212,11 @@
     <ClInclude Include="helper.h">
       <Filter>Source Files\vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="normalmap_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="compile.bat">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="shaders\depth.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
@@ -263,6 +266,9 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\terrain.tesc">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\normalmap.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

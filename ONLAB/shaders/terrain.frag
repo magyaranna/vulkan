@@ -5,6 +5,8 @@ layout(set = 4, binding = 0) uniform sampler2DArray  cascadeShadowSampler;
 layout(set = 6, binding = 0) uniform sampler2D VSMshadowSampler;
 layout(set = 7, binding = 0) uniform sampler2D ESMshadowSampler;
 
+layout (set = 9, binding = 0) uniform sampler2D normalMap; 
+
 
 layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
     mat4 view;
@@ -46,7 +48,8 @@ layout(location = 0) in vec3 fragPos;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec3 worldPos;
 layout(location = 3) in vec3 viewPos;
-layout(location = 4) in float height;
+layout(location = 4) in vec2 inUV;
+
 
 layout(location = 0) out vec4 outColor;
 
@@ -182,9 +185,33 @@ float cascadeFilterPCF(uint cascadeIndex, vec3 normal, vec3 lightDir)
 
 void main(){
 
-	vec3 normal = fragNormal;
+    vec3 normal =  texture(normalMap, inUV).rgb;
+
+    /**/
+   /* vec2 texelSize = 1.0 / textureSize(displacementMap, 0);
+
+	 float heights[3][3];
+	 for (int sx = -1; sx <= 1; sx++) {
+		for (int sy = -1; sy <= 1; sy++) {
+			vec2 rpos = vec2(inUV.x + sx * texelSize.x, inUV.y + sy * texelSize.y);
+			rpos.x = max(0, min(rpos.x, textureSize(displacementMap, 0).x - 1));
+			rpos.y = max(0, min(rpos.y, textureSize(displacementMap, 0).y - 1));
+						
+			heights[sx + 1][sy + 1] = texture(displacementMap, rpos).r ;
+		}
+	}
+
+	normal.x = heights[0][0] - heights[2][0] + 2.0f * heights[0][1] - 2.0f * heights[2][1] + heights[0][2] - heights[2][2];
+	normal.z = heights[0][0] + 2.0f * heights[1][0] + heights[2][0] - heights[0][2] - 2.0f * heights[1][2] - heights[2][2];	
+	normal.y = 0.25f * sqrt(1.0f - normal.x * normal.x - normal.z * normal.z);
+
+    normal = normalize(normal * vec3(2.0f, 1.0f, 2.0f));*/
+    
+
+
+	
 	float shading = dot(normal, vec3(0.0, 1.0, 0.0));
-    vec3 green = vec3(0.416,0.529,0.369);
+    vec3 green = vec3(0.416,0.529,0.369); //0.808,0.51,0.655
 
     vec4 fragPosLightSpace = light.proj * light.view * vec4(worldPos,1.0);   
     vec3 lightDir = normalize(light.pos - fragPos);
@@ -194,7 +221,7 @@ void main(){
     if(p.displayNormalmap == 1){
         color = normal;
     }else{
-       color = vec3(0.808,0.51,0.655) * shading;
+       color = vec3(0.0,0.8,0.8) * shading;
     }
 
     /*Shadow*/
@@ -277,7 +304,7 @@ void main(){
         }
     }
 
-   outColor = vec4( color.rgb,1.0 );
+   outColor = vec4( color.rgb ,1.0 );
     //outColor = vec4( normal ,1.0 );
 	//outColor = vec4( vec3(height, height, height) ,1.0 );
     //outColor = vec4( 0.0, 0.0, 0.0 ,1.0 );

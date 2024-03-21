@@ -157,6 +157,7 @@
     <ClCompile Include="light.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="normalmap_render_system.cpp" />
     <ClCompile Include="offscreen_render_system.cpp" />
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="renderer.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="descriptors.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="esm_render_system.h" />
+    <ClInclude Include="normalmap_render_system.h" />
     <ClInclude Include="renderinfo.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helper.h" />
@@ -207,12 +209,12 @@
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="compile.bat" />
     <None Include="shaders\depthCascade.vert" />
     <None Include="shaders\ecsm.frag" />
     <None Include="shaders\esm.frag" />
     <None Include="shaders\gaussblur.frag" />
     <None Include="shaders\gaussblur_cascade.frag" />
+    <None Include="shaders\normalmap.frag" />
     <None Include="shaders\scene.frag" />
     <None Include="shaders\scene.vert" />
     <None Include="shaders\depth.frag" />
