@@ -6,6 +6,38 @@
 
 namespace v {
 
+    struct TextureResources {
+        int width, height;
+        VkImage image;
+        VkDeviceMemory mem;
+        VkImageView view;
+        VkSampler sampler;
+        std::vector<VkDescriptorSet> descriptorSets;
+    };
+
+    struct FramebufferResources {
+        TextureResources res;
+        VkFramebuffer framebuffer;
+    };
+
+    struct OffScreenFrameBuffer {
+        VkImage image;
+        VkDeviceMemory mem;
+        VkImageView view;
+
+        VkImage colorImage;
+        VkDeviceMemory colorMem;
+        VkImageView colorView;
+        VkImage depthImage;
+        VkDeviceMemory depthMem;
+        VkImageView depthView;
+
+        VkFramebuffer frameBuffer;
+        VkSampler sampler;
+        std::vector<VkDescriptorSet> descriptorSets;
+    };
+
+
     class Helper {
     public:
         Helper() {}

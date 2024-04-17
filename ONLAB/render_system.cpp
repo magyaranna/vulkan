@@ -2,7 +2,7 @@
 
 namespace v {
 
-    RenderSystem::RenderSystem(Device& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts) : device(device) {
+    RenderSystem::RenderSystem(Device& device, PipelineManager& pipelineManager, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts) : device(device), pipelineManager(pipelineManager){
         createPipelineLayout(setLayouts);
         createPipeline(renderPass);
 
@@ -21,13 +21,23 @@ namespace v {
         pipelineLayoutInfo.setLayoutCount = layouts.size();
         pipelineLayoutInfo.pSetLayouts = layouts.data();
 
+
+        std::vector<VkPushConstantRange> ranges;
         VkPushConstantRange pushConstantRange = {};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
         pushConstantRange.size = sizeof(pushConstants);
 
-        pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-        pipelineLayoutInfo.pushConstantRangeCount = 1;
+        VkPushConstantRange pushConstantRange2 = {};
+        pushConstantRange2.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        pushConstantRange2.offset = 32;
+        pushConstantRange2.size = sizeof(glm::vec4);
+
+        ranges.push_back(pushConstantRange);
+        ranges.push_back(pushConstantRange2);
+
+        pipelineLayoutInfo.pPushConstantRanges = ranges.data();
+        pipelineLayoutInfo.pushConstantRangeCount = ranges.size();
 
 
         if (vkCreatePipelineLayout(device.getLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
@@ -39,37 +49,40 @@ namespace v {
 
 
     void RenderSystem::createPipeline(VkRenderPass renderPass) {
+        pipelineManager.addPipelineCreation([this, renderPass] {
+            const std::string vert = "shaders/sceneVert.spv";
+            const std::string frag = "shaders/sceneFrag.spv";
 
-        const std::string vert = "shaders/sceneVert.spv";
-        const std::string frag = "shaders/sceneFrag.spv";
+            ConfigInfo configinfo{};
+            Pipeline::defaultPipelineConfigInfo(configinfo);
 
-        ConfigInfo configinfo{};
-        Pipeline::defaultPipelineConfigInfo(configinfo);
+            configinfo.pipelineLayout = pipelineLayout;
+            configinfo.renderPass = renderPass;
+            configinfo.rasterizer.cullMode = VK_CULL_MODE_NONE;
 
-        configinfo.pipelineLayout = pipelineLayout;
-        configinfo.renderPass = renderPass;
-
-        configinfo.multisampling.rasterizationSamples = device.getMSAASampleCountFlag();
-        configinfo.multisampling.sampleShadingEnable = VK_TRUE;
-        configinfo.multisampling.minSampleShading = .2f; // min fraction for sample shading; closer to one is smoother
-
-
-        configinfo.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        configinfo.bindingDescriptions = Vertex::getBindingDescription();
-        configinfo.attributeDescriptions = Vertex::getAttributeDescriptions();
-        configinfo.vertexInputInfo.vertexBindingDescriptionCount = 1;
-        configinfo.vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(configinfo.attributeDescriptions.size());
-        configinfo.vertexInputInfo.pVertexBindingDescriptions = &configinfo.bindingDescriptions;
-        configinfo.vertexInputInfo.pVertexAttributeDescriptions = configinfo.attributeDescriptions.data();
+            configinfo.multisampling.rasterizationSamples = device.getMSAASampleCountFlag();
+            configinfo.multisampling.sampleShadingEnable = VK_TRUE;
+            configinfo.multisampling.minSampleShading = .2f; // min fraction for sample shading; closer to one is smoother
 
 
-        pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
+            configinfo.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+            configinfo.bindingDescriptions = Vertex::getBindingDescription();
+            configinfo.attributeDescriptions = Vertex::getAttributeDescriptions();
+            configinfo.vertexInputInfo.vertexBindingDescriptionCount = 1;
+            configinfo.vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(configinfo.attributeDescriptions.size());
+            configinfo.vertexInputInfo.pVertexBindingDescriptions = &configinfo.bindingDescriptions;
+            configinfo.vertexInputInfo.pVertexAttributeDescriptions = configinfo.attributeDescriptions.data();
+
+
+            pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
+           });
+        
 
     }
 
 
 
-    void RenderSystem::renderGameObjects(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderinfo) {
+    void RenderSystem::renderGameObjects(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderinfo, Camera& camera, glm::vec4 clipPlane) {
 
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
@@ -83,18 +96,19 @@ namespace v {
         renderinfo.gui.bias == true ? pushConstants[6] = 1 : pushConstants[6] = 0;
         vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstants), pushConstants.data());
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderinfo.camera->getDescriptorSet(currentFrame), 0, nullptr);
+        std::array<glm::vec4, 1> constants1 = { clipPlane };
+        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 32, sizeof(glm::vec4), constants1.data());
+
+
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &camera.getDescriptorSet(currentFrame), 0, nullptr);
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 4, 1, &renderinfo.light->getLightDescriptorSet(currentFrame), 0, nullptr);
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 5, 1, &renderinfo.simpleShadowMap, 0, nullptr);
-
-
+        /*vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 5, 1, &renderinfo.simpleShadowMap, 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 6, 1, &renderinfo.cascadeShadowmap, 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 7, 1, &renderinfo.cascadeLightSpaceMx, 0, nullptr);
-
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 8, 1, &renderinfo.vsmShadowmap, 0, nullptr);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 9, 1, &renderinfo.esmShadowmap, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 9, 1, &renderinfo.esmShadowmap, 0, nullptr);*/
 
 
         for (int i = 0; i < renderinfo.gameobjects.size(); i++) {

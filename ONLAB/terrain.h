@@ -24,24 +24,6 @@
 namespace v {
 
 
-	struct HeightMap {
-		int width, height;
-		VkImage image;
-		VkDeviceMemory mem;
-		VkImageView view;
-		VkSampler sampler;
-	};
-
-	struct NormalMap {
-		VkImage image;
-		VkDeviceMemory mem;
-		VkImageView view;
-		VkSampler sampler;
-		VkFramebuffer framebuffer;
-	};
-
-
-
 	class Terrain {
 	private:
 
@@ -50,22 +32,6 @@ namespace v {
 		glm::vec3 offset = glm::vec3(0.0f);
 		glm::vec3 scale;
 
-		
-
-		void createHeightMapResources();
-		std::vector<VkDescriptorSet> descriptorSetsHeightMap;
-		void createHeightMapDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool);
-
-		void createNormalMapResources(VkRenderPass& renderPass);
-		std::vector<VkDescriptorSet> descriptorSetsNormalMap;
-		void createNormalMapDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool);
-
-		struct TerrainUniformBufferObject {
-			glm::mat4 modelmx;
-		};
-		std::vector<std::unique_ptr<Buffer>> modelMxUniform;
-		void createUniformBuffers();
-	
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 		std::unique_ptr<Buffer> vertexBuffer;
@@ -73,44 +39,75 @@ namespace v {
 		void createVertexBuffer();
 		void createIndexBuffer();
 
+		struct TerrainUniformBufferObject {
+			glm::mat4 modelmx;
+		};
+		std::vector<std::unique_ptr<Buffer>> modelMxUniform;
+		void createUniformBuffers();
 		std::vector<VkDescriptorSet> descriptorSets;
 		void createDescriptorSets(DescriptorSetLayout& setLayout, DescriptorPool& pool);
-		
 
+
+		TextureResources heightmap;
+		FramebufferResources normalmap;
+		void createHeightMapResources();
+		void createNormalMapResources(VkRenderPass& renderPass);
+	
+		
 		void generate();
 		void generateFromHeightmap();
 		glm::vec3 CalculateNormal(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3);
 		
 
-		TextureResources defaultTexture;
-		std::vector<VkDescriptorSet> defaultTextureDescriptorSets;
+		TextureResources grassTexture;
+		TextureResources snowTexture;
+		TextureResources sandTexture;
+		TextureResources rockTexture;
+		void createTextureResources(TextureResources& textureResources, std::string path);
+		void createTextureDescriptorSet(Device& device, TextureResources& textureResources, DescriptorSetLayout& layout, DescriptorPool& pool);
 
 	public:
 		Terrain(Device& device, glm::vec3 scale, DescriptorSetLayout& setLayout, DescriptorSetLayout& textLayout, DescriptorPool& pool, VkRenderPass& renderPass);
 		~Terrain();
 
-		HeightMap heightmap;
-
-		NormalMap normalmap;
-
 		void updateUniformBuffer(uint32_t currentImage, bool spin);
 		void draw(VkCommandBuffer cmd);
 
+
+		int getHeightMapWidth(){
+			return heightmap.width;
+		}
+		int getHeightMapHeight(){
+			return heightmap.height;
+		}
+
+		FramebufferResources getNormalmap() {
+			return normalmap;
+		}
 
 		VkDescriptorSet& getDescriptorSet(int i) {
 			return descriptorSets[i];
 		}
 
 		VkDescriptorSet& getHeightMapDescriptorSet(int i) {
-			return descriptorSetsHeightMap[i];
+			return heightmap.descriptorSets[i];
 		}
 
 		VkDescriptorSet& getNormalMapDescriptorSet(int i) {
-			return descriptorSetsNormalMap[i];
+			return normalmap.res.descriptorSets[i];
 		}
 
-		VkDescriptorSet& getDefaultTextureDescriptorSets(int i) {
-			return defaultTextureDescriptorSets[i];
+		VkDescriptorSet& getGrassTextureDescriptorSets(int i) {
+			return grassTexture.descriptorSets[i];
+		}
+		VkDescriptorSet& getSnowTextureDescriptorSets(int i) {
+			return snowTexture.descriptorSets[i];
+		}
+		VkDescriptorSet& getSandTextureDescriptorSets(int i) {
+			return sandTexture.descriptorSets[i];
+		}
+		VkDescriptorSet& getRockTextureDescriptorSets(int i) {
+			return rockTexture.descriptorSets[i];
 		}
 	};
 }

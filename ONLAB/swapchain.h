@@ -34,7 +34,7 @@ namespace v {
 		VkDeviceMemory colorImageMemory;
 		VkImageView colorImageView;
 
-		VkImage depthImage;
+		
 		VkDeviceMemory depthImageMemory;
 		VkImageView depthImageView;
 
@@ -77,7 +77,7 @@ namespace v {
 
 		void recreateSwapChain();
 
-
+		VkImage depthImage;
 
 
 		//draw

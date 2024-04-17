@@ -84,14 +84,16 @@ namespace v {
     }
 
 
-    void Renderer::beginSwapChainRenderPass(VkCommandBuffer commandBuffer) {
+    void Renderer::beginRenderPass(VkCommandBuffer commandBuffer, VkFramebuffer framebuffer, VkRenderPass renderPass) {
         assert(isFrameStarted && "frame not started");
         assert(commandBuffer == getCurrentCommandBuffer() && "cmd is from another frame");
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = swapchain->getRenderPass();
-        renderPassInfo.framebuffer = swapchain->getSwapChainFramebuffers(currentImageIndex);
+        if (framebuffer == VK_NULL_HANDLE) renderPassInfo.renderPass = swapchain->getRenderPass();
+        else renderPassInfo.renderPass = renderPass;
+        if(framebuffer == VK_NULL_HANDLE) renderPassInfo.framebuffer = swapchain->getSwapChainFramebuffers(currentImageIndex);
+        else renderPassInfo.framebuffer = framebuffer;
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = swapchain->getSwapChainExtent();
 

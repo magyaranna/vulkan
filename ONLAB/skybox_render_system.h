@@ -26,7 +26,7 @@ namespace v {
 		SkyboxRenderSystem(Device& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts);
 		~SkyboxRenderSystem();
 
-		void drawSkybox(VkCommandBuffer& cmd, int currentFrame, SkyBox& skybox, Camera& camera);
+		void drawSkybox(VkCommandBuffer& cmd, int currentFrame, SkyBox& skybox, Camera& camera, glm::vec4 clipPlane = glm::vec4(0.0, 0.0, 0.0, 0.0));
 
 	
 	};

@@ -211,7 +211,7 @@ namespace v {
 
 		vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &MXDescriptorSets[renderinfo.currentFrame], 0, nullptr);
 
-		vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderinfo.terrain->getDefaultTextureDescriptorSets(renderinfo.currentFrame), 0, nullptr);
+		vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderinfo.terrain->getGrassTextureDescriptorSets(renderinfo.currentFrame), 0, nullptr);
 		vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &renderinfo.terrain->getDescriptorSet(renderinfo.currentFrame), 0, nullptr);
 		renderinfo.terrain->draw(renderinfo.cmd);
 

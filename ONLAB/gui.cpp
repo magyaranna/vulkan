@@ -72,11 +72,13 @@ namespace v {
         ImGui::SeparatorText("");
        
         ImGui::Checkbox("display normalmap", &displayNormalmap);
+
+        ImGui::Checkbox("skybox", &skybox);
        
 
      
         ImGui::Text("displacementFactor:");
-        ImGui::SliderFloat("1", &dFactor, 0.0f, 500.0f, "%.3f");
+        ImGui::SliderFloat("1", &dFactor, 0.0f, 250.0f, "%.3f");
 
         ImGui::Text("tessellationFactor:");
         ImGui::SliderFloat("2", &tessFactor, 5.0f, 100, "%.2f");

@@ -26,7 +26,7 @@ namespace v {
 
         if(size != VK_WHOLE_SIZE){
             return vkMapMemory(device.getLogicalDevice(), memory, offset, size, 0, &mapped);
-            }
+        }
         return vkMapMemory(device.getLogicalDevice(), memory, offset, bufferSize, 0, &mapped);    //size!!!!!!!!
     }
 

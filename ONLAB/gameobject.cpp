@@ -44,7 +44,7 @@ namespace v {
             ubo.modelmx = glm::rotate(glm::translate(glm::mat4(1.0f), offset), time * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f)) :
             ubo.modelmx = glm::translate(glm::mat4(1.0f), offset);
 
-
+       
             /*macsk*/
            // ubo.modelmx = glm::rotate(glm::translate(glm::mat4(1.0f), offset), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
            // ubo.modelmx = glm::rotate(ubo.modelmx, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));

@@ -25,6 +25,27 @@
     <Filter Include="Source Files\vulkan">
       <UniqueIdentifier>{02aa092f-2551-4a9d-8969-037af8fd58e1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\shaders\shadow">
+      <UniqueIdentifier>{a85d848b-37ca-4a76-a23c-3fb2fc3cd88d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders\skybox">
+      <UniqueIdentifier>{d6cb653d-3ae3-4e75-ac41-35d67119b737}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders\terrain">
+      <UniqueIdentifier>{22f6319b-8896-43c9-a437-40450542207c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\render\shadowmap">
+      <UniqueIdentifier>{3c93e159-a1e4-4452-ae75-d95b005f58ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\render\terrain">
+      <UniqueIdentifier>{1223c26d-760b-4f6c-ae09-2cd8e29b30df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\render\water">
+      <UniqueIdentifier>{9479eac1-80cd-4e8b-84e5-e246d59a5259}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\render\skybox">
+      <UniqueIdentifier>{5ea0b754-204e-419f-9487-82a64924d12c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp">
@@ -57,26 +78,8 @@
     <ClCompile Include="render_system.cpp">
       <Filter>Source Files\render</Filter>
     </ClCompile>
-    <ClCompile Include="offscreen_render_system.cpp">
-      <Filter>Source Files\render</Filter>
-    </ClCompile>
     <ClCompile Include="terrain.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="terrain_render_system.cpp">
-      <Filter>Source Files\render</Filter>
-    </ClCompile>
-    <ClCompile Include="cascadeshadow_render_system.cpp">
-      <Filter>Source Files\render</Filter>
-    </ClCompile>
-    <ClCompile Include="vsm_render_system.cpp">
-      <Filter>Source Files\render</Filter>
-    </ClCompile>
-    <ClCompile Include="esm_render_system.cpp">
-      <Filter>Source Files\render</Filter>
-    </ClCompile>
-    <ClCompile Include="blur_render_system.cpp">
-      <Filter>Source Files\render</Filter>
     </ClCompile>
     <ClCompile Include="shadowmaps.cpp">
       <Filter>Source Files\shadowmaps</Filter>
@@ -102,16 +105,49 @@
     <ClCompile Include="skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="skybox_render_system.cpp">
-      <Filter>Source Files\render</Filter>
-    </ClCompile>
     <ClCompile Include="window.cpp">
       <Filter>Source Files\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="buffer.cpp">
       <Filter>Source Files\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="water.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sky_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="cascadeshadow_render_system.cpp">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClCompile>
+    <ClCompile Include="esm_render_system.cpp">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClCompile>
+    <ClCompile Include="shadowmap_render_system.cpp">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClCompile>
+    <ClCompile Include="vsm_render_system.cpp">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClCompile>
+    <ClCompile Include="terrain_render_system.cpp">
+      <Filter>Source Files\render\terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="water_render_system.cpp">
+      <Filter>Source Files\render\water</Filter>
+    </ClCompile>
+    <ClCompile Include="skybox_render_system.cpp">
+      <Filter>Source Files\render\skybox</Filter>
+    </ClCompile>
     <ClCompile Include="normalmap_render_system.cpp">
+      <Filter>Source Files\render\terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="blur_render_system.cpp">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClCompile>
+    <ClCompile Include="scene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="offscreen_render_system.cpp">
       <Filter>Source Files\render</Filter>
     </ClCompile>
   </ItemGroup>
@@ -143,35 +179,17 @@
     <ClInclude Include="render_system.h">
       <Filter>Source Files\render</Filter>
     </ClInclude>
-    <ClInclude Include="offscreen_render_system.h">
-      <Filter>Source Files\render</Filter>
-    </ClInclude>
     <ClInclude Include="material.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="terrain.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="terrain_render_system.h">
-      <Filter>Source Files\render</Filter>
-    </ClInclude>
-    <ClInclude Include="cascadeshadow_render_system.h">
-      <Filter>Source Files\render</Filter>
-    </ClInclude>
     <ClInclude Include="vertex.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="renderinfo.h">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vsm_render_system.h">
-      <Filter>Source Files\render</Filter>
-    </ClInclude>
-    <ClInclude Include="esm_render_system.h">
-      <Filter>Source Files\render</Filter>
-    </ClInclude>
-    <ClInclude Include="blur_render_system.h">
-      <Filter>Source Files\render</Filter>
     </ClInclude>
     <ClInclude Include="shadowmaps.h">
       <Filter>Source Files\shadowmaps</Filter>
@@ -200,9 +218,6 @@
     <ClInclude Include="skybox.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="skybox_render_system.h">
-      <Filter>Source Files\render</Filter>
-    </ClInclude>
     <ClInclude Include="window.h">
       <Filter>Source Files\vulkan</Filter>
     </ClInclude>
@@ -212,64 +227,118 @@
     <ClInclude Include="helper.h">
       <Filter>Source Files\vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="water.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sky_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="cascadeshadow_render_system.h">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClInclude>
+    <ClInclude Include="esm_render_system.h">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClInclude>
+    <ClInclude Include="shadowmap_render_system.h">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClInclude>
+    <ClInclude Include="vsm_render_system.h">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClInclude>
+    <ClInclude Include="terrain_render_system.h">
+      <Filter>Source Files\render\terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="water_render_system.h">
+      <Filter>Source Files\render\water</Filter>
+    </ClInclude>
+    <ClInclude Include="skybox_render_system.h">
+      <Filter>Source Files\render\skybox</Filter>
+    </ClInclude>
     <ClInclude Include="normalmap_render_system.h">
+      <Filter>Source Files\render\terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="blur_render_system.h">
+      <Filter>Source Files\render\shadowmap</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="offscreen_render_system.h">
       <Filter>Source Files\render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\depth.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\terrain.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\terrain.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\depthCascade.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\depth.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
     <None Include="shaders\scene.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\scene.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="shaders\vsm.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\esm.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
     <None Include="shaders\gaussblur.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\vcsm.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\ecsm.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\gaussblur_cascade.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="shaders\skybox.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\skybox.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\terrain.tese">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\terrain.tesc">
-      <Filter>Source Files\shaders</Filter>
-    </None>
     <None Include="shaders\normalmap.frag">
       <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\water.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\water.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\depthCascade.vert">
+      <Filter>Source Files\shaders\shadow</Filter>
+    </None>
+    <None Include="shaders\ecsm.frag">
+      <Filter>Source Files\shaders\shadow</Filter>
+    </None>
+    <None Include="shaders\esm.frag">
+      <Filter>Source Files\shaders\shadow</Filter>
+    </None>
+    <None Include="shaders\vcsm.frag">
+      <Filter>Source Files\shaders\shadow</Filter>
+    </None>
+    <None Include="shaders\vsm.frag">
+      <Filter>Source Files\shaders\shadow</Filter>
+    </None>
+    <None Include="shaders\skybox.frag">
+      <Filter>Source Files\shaders\skybox</Filter>
+    </None>
+    <None Include="shaders\skybox.vert">
+      <Filter>Source Files\shaders\skybox</Filter>
+    </None>
+    <None Include="shaders\terrain.frag">
+      <Filter>Source Files\shaders\terrain</Filter>
+    </None>
+    <None Include="shaders\terrain.tesc">
+      <Filter>Source Files\shaders\terrain</Filter>
+    </None>
+    <None Include="shaders\terrain.tese">
+      <Filter>Source Files\shaders\terrain</Filter>
+    </None>
+    <None Include="shaders\terrain.vert">
+      <Filter>Source Files\shaders\terrain</Filter>
+    </None>
+    <None Include="shaders\sky.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\SMdepth.vert">
+      <Filter>Source Files\shaders\shadow</Filter>
+    </None>
+    <None Include="shaders\depth.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\depth.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\terraindepth.tese">
+      <Filter>Source Files\shaders\terrain</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

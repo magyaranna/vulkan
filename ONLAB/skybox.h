@@ -15,21 +15,12 @@
 namespace v {
 
 
-	struct CubeMapResources {
-		int width, height;
-		VkImage image;
-		VkDeviceMemory mem;
-		VkImageView view;
-		VkSampler sampler;
-	};
-
 
 	class SkyBox {
 	private:
 		Device& device;
 
-		/**/
-		CubeMapResources skybox;
+		TextureResources skybox;
 		std::vector<const char*> filenames;
 
 		std::vector<Vertex> vertices;
@@ -39,8 +30,6 @@ namespace v {
 
 		void load();
 		void createResources();
-
-		std::vector<VkDescriptorSet> descriptorSets;
 		void createDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool);
 
 	public:
@@ -51,7 +40,7 @@ namespace v {
 		void draw(VkCommandBuffer cmd);
 
 		VkDescriptorSet& getDescriptorSet(int i) {
-			return descriptorSets[i];
+			return skybox.descriptorSets[i];
 		}
 	};
 

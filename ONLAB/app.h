@@ -14,7 +14,7 @@
 #include "gui.h"
 #include "renderer.h"
 #include "render_system.h"
-#include "offscreen_render_system.h"
+#include "shadowmap_render_system.h"
 #include "terrain_render_system.h"
 #include "cascadeshadow_render_system.h"
 #include "vsm_render_system.h"
@@ -32,6 +32,14 @@
 #include "pipelinemanager.h"
 
 #include "normalmap_render_system.h"
+
+#include "water.h"
+#include "water_render_system.h"
+
+#include "timer.h"
+#include "sky_render_system.h"
+#include "scene.h"
+#include "offscreen_render_system.h"
 
 namespace v {
 
@@ -57,21 +65,25 @@ namespace v {
         std::unique_ptr<Gui> gui;
         std::unique_ptr<Light> light;
         std::unique_ptr<Camera> camera;
+        std::unique_ptr<Camera> reflectionCamera;
 
         std::unique_ptr<Terrain> terrain;
 
         std::unique_ptr<SkyBox> skybox;
+
+        std::unique_ptr<Water> water;
 
         // std::vector<GameObject*> gameobjects = {};
         std::unordered_map<unsigned int, std::unique_ptr<GameObject>> gameobjects;
 
         static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-
+        void Inputs(GLFWwindow* window);
         bool writeFile = false;
 
-    public:
 
+    public:
+        bool firstClick = false;
 
         App();
         ~App();

@@ -25,6 +25,19 @@ namespace v{
         pipelineLayoutInfo.setLayoutCount = layouts.size();
         pipelineLayoutInfo.pSetLayouts = layouts.data();
 
+
+        std::vector<VkPushConstantRange> ranges;
+
+        VkPushConstantRange pushConstantRange = {};
+        pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        pushConstantRange.offset = 0;
+        pushConstantRange.size = sizeof(glm::vec4);
+
+        ranges.push_back(pushConstantRange);
+
+        pipelineLayoutInfo.pPushConstantRanges = ranges.data();
+        pipelineLayoutInfo.pushConstantRangeCount = ranges.size();
+
         if (vkCreatePipelineLayout(device.getLogicalDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
@@ -72,9 +85,13 @@ namespace v{
 
 
 
-    void SkyboxRenderSystem::drawSkybox(VkCommandBuffer& cmd, int currentFrame, SkyBox& skybox, Camera& camera) {
+    void SkyboxRenderSystem::drawSkybox(VkCommandBuffer& cmd, int currentFrame, SkyBox& skybox, Camera& camera, glm::vec4 clipPlane) {
 
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
+
+        std::array<glm::vec4, 1> constants = { clipPlane };
+        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::vec3), constants.data());
+
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &camera.getDescriptorSet(currentFrame), 0, nullptr);
         

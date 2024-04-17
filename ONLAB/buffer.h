@@ -12,13 +12,14 @@ namespace v {
         Device& device;
         void* mapped = nullptr;
         VkBuffer buffer = VK_NULL_HANDLE;
-        VkDeviceMemory memory = VK_NULL_HANDLE;
-
+        
         VkDeviceSize bufferSize;
         VkBufferUsageFlags usageFlags;
         VkMemoryPropertyFlags memoryPropertyFlags;
 
     public:
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+
 
         Buffer( Device& device, VkDeviceSize bufferSize, VkBufferUsageFlags usageFlags, VkMemoryPropertyFlags memoryPropertyFlags);
         ~Buffer();

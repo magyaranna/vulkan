@@ -5,27 +5,51 @@ namespace v {
 
 	Terrain::Terrain(Device& device, glm::vec3 scale, DescriptorSetLayout& setLayout, DescriptorSetLayout& textLayout, DescriptorPool& pool, VkRenderPass& renderPass) : device(device), scale(scale) {
 		generate();
-		//generateFromHeightmap();
 		createVertexBuffer();
 		createIndexBuffer();
 
 		createUniformBuffers();
 		createDescriptorSets(setLayout, pool);
-		defaultTextureDescriptorSets = Texture::createDefaultTextureDescriptorSet(device, defaultTexture, textLayout.getDescriptorSetLayout(), pool.getDescriptorPool());
 
-
-		createHeightMapDescriptorSets(textLayout, pool);
-
+		createTextureDescriptorSet(device, heightmap, textLayout, pool);
 		createNormalMapResources(renderPass);
-		createNormalMapDescriptorSets(textLayout, pool);
+		createTextureDescriptorSet(device, normalmap.res, textLayout, pool);
+
+		createTextureResources(grassTexture, "textures/terrain/terrain.jpg");
+		createTextureDescriptorSet(device, grassTexture, textLayout, pool);
+		createTextureResources(snowTexture, "textures/terrain/snow.bmp");
+		createTextureDescriptorSet(device,  snowTexture, textLayout, pool);
+		createTextureResources(sandTexture, "textures/terrain/sand.bmp");
+		createTextureDescriptorSet(device, sandTexture, textLayout, pool);
+		createTextureResources(rockTexture, "textures/terrain/rock.bmp");
+		createTextureDescriptorSet(device,  rockTexture, textLayout, pool);
+
+
+		
+
 
 	}
 	Terrain::~Terrain() {
 
-		vkDestroySampler(device.getLogicalDevice(), defaultTexture.sampler, nullptr);
-		vkDestroyImageView(device.getLogicalDevice(), defaultTexture.view, nullptr);
-		vkDestroyImage(device.getLogicalDevice(), defaultTexture.image, nullptr);
-		vkFreeMemory(device.getLogicalDevice(), defaultTexture.mem, nullptr);
+		vkDestroySampler(device.getLogicalDevice(), grassTexture.sampler, nullptr);
+		vkDestroyImageView(device.getLogicalDevice(), grassTexture.view, nullptr);
+		vkDestroyImage(device.getLogicalDevice(), grassTexture.image, nullptr);
+		vkFreeMemory(device.getLogicalDevice(), grassTexture.mem, nullptr);
+
+		vkDestroySampler(device.getLogicalDevice(), snowTexture.sampler, nullptr);
+		vkDestroyImageView(device.getLogicalDevice(), snowTexture.view, nullptr);
+		vkDestroyImage(device.getLogicalDevice(), snowTexture.image, nullptr);
+		vkFreeMemory(device.getLogicalDevice(), snowTexture.mem, nullptr);
+
+		vkDestroySampler(device.getLogicalDevice(), sandTexture.sampler, nullptr);
+		vkDestroyImageView(device.getLogicalDevice(), sandTexture.view, nullptr);
+		vkDestroyImage(device.getLogicalDevice(), sandTexture.image, nullptr);
+		vkFreeMemory(device.getLogicalDevice(), sandTexture.mem, nullptr);
+
+		vkDestroySampler(device.getLogicalDevice(), rockTexture.sampler, nullptr);
+		vkDestroyImageView(device.getLogicalDevice(), rockTexture.view, nullptr);
+		vkDestroyImage(device.getLogicalDevice(), rockTexture.image, nullptr);
+		vkFreeMemory(device.getLogicalDevice(), rockTexture.mem, nullptr);
 
 
 
@@ -34,10 +58,10 @@ namespace v {
 		vkDestroyImage(device.getLogicalDevice(), heightmap.image, nullptr);
 		vkFreeMemory(device.getLogicalDevice(), heightmap.mem, nullptr);
 
-		vkDestroySampler(device.getLogicalDevice(), normalmap.sampler, nullptr);
-		vkDestroyImageView(device.getLogicalDevice(), normalmap.view, nullptr);
-		vkDestroyImage(device.getLogicalDevice(), normalmap.image, nullptr);
-		vkFreeMemory(device.getLogicalDevice(), normalmap.mem, nullptr);
+		vkDestroySampler(device.getLogicalDevice(), normalmap.res.sampler, nullptr);
+		vkDestroyImageView(device.getLogicalDevice(), normalmap.res.view, nullptr);
+		vkDestroyImage(device.getLogicalDevice(), normalmap.res.image, nullptr);
+		vkFreeMemory(device.getLogicalDevice(), normalmap.res.mem, nullptr);
 		vkDestroyFramebuffer(device.getLogicalDevice(), normalmap.framebuffer, nullptr);
 	}
 
@@ -62,10 +86,10 @@ namespace v {
 		if (!pixels) {
 			throw std::runtime_error("failed to load texture image!");
 		}
-
-
 		heightmap.width = texWidth;
 		heightmap.height = texHeight;
+
+;
 		size_t imageSize = texWidth * texHeight * 4;
 
 		Buffer stagingBuffer{ device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
@@ -78,34 +102,10 @@ namespace v {
 		createHeightMapResources();
 
 		Helper::transitionImageLayout(device, heightmap.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, 1);
-		Helper::copyBufferToImage(device, stagingBuffer.getBuffer(), heightmap.image, static_cast<uint32_t>(heightmap.width), static_cast<uint32_t>(texHeight), 1);
+		Helper::copyBufferToImage(device, stagingBuffer.getBuffer(), heightmap.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
 		Helper::transitionImageLayout(device, heightmap.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1, 1);
 
-		/*float a = 500.0f;
-		Vertex vertex{};
-		vertex.pos = glm::vec3(-1.0f, 0.0f, -1.0f) * a;
-		vertex.texCoord = glm::vec2(0, 0);
-		vertices.push_back(vertex);
-
-		vertex.pos = glm::vec3(1.0f, 0.0f, -1.0f) * a;
-		vertex.texCoord = glm::vec2(1, 0);
-		vertices.push_back(vertex);
-
-		vertex.pos = glm::vec3(1.0f, 0.0f, 1.0f) * a;
-		vertex.texCoord = glm::vec2(1, 1);
-		vertices.push_back(vertex);
-
-		vertex.pos = glm::vec3(-1.0f, 0.0f, 1.0f) * a;
-		vertex.texCoord = glm::vec2(0, 1);
-		vertices.push_back(vertex);
-
-
-		indices.push_back(0);
-		indices.push_back(1);
-		indices.push_back(2);
-		indices.push_back(3);*/
-
-
+	
 		const uint32_t rez{ 10 };
 		const float uvScale{ 1.0f };
 		uint32_t dim;
@@ -157,56 +157,11 @@ namespace v {
 	}
 
 	void Terrain::createHeightMapResources() {
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = heightmap.width;
-		imageInfo.extent.height = heightmap.height;
-		imageInfo.extent.depth = 1;
-		imageInfo.arrayLayers = 1;
-		imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.mipLevels = 1;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
+		Helper::createImage(device, heightmap.width, heightmap.height, 1, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, heightmap.image, heightmap.mem);
 
-		if (vkCreateImage(device.getLogicalDevice(), &imageInfo, nullptr, &heightmap.image) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create  image!");
-		}
-
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(device.getLogicalDevice(), heightmap.image, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = device.findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		if (vkAllocateMemory(device.getLogicalDevice(), &allocInfo, nullptr, &heightmap.mem) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate image memory!");
-		}
-
-		vkBindImageMemory(device.getLogicalDevice(), heightmap.image, heightmap.mem, 0);
-
-
-		/*view*/
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = heightmap.image;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		viewInfo.subresourceRange.baseMipLevel = 0;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = 1;
-		viewInfo.subresourceRange.levelCount = 1;
-
-		if (vkCreateImageView(device.getLogicalDevice(), &viewInfo, nullptr, &heightmap.view) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture image view!");
-		}
+		heightmap.view = Helper::createImageView(device, heightmap.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 		/*sampler*/
 		VkPhysicalDeviceProperties properties{};
@@ -236,83 +191,22 @@ namespace v {
 	}
 
 
-
-	void Terrain::createHeightMapDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool) {
-
-		descriptorSetsHeightMap.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-
-		for (int i = 0; i < descriptorSetsHeightMap.size(); i++) {
-
-			VkDescriptorImageInfo skyboxImageInfo{};
-			skyboxImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			skyboxImageInfo.imageView = heightmap.view;
-			skyboxImageInfo.sampler = heightmap.sampler;
-
-			DescriptorWriter(layout, descriptorPool)
-				.createDescriptorWriter(0, &skyboxImageInfo)
-				.build(descriptorSetsHeightMap[i]);
-
-		}
-	}
-
 	void Terrain::createNormalMapResources(VkRenderPass& renderPass) {
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = heightmap.width;
-		imageInfo.extent.height = heightmap.height;
-		imageInfo.extent.depth = 1;
-		imageInfo.arrayLayers = 1;
-		imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.mipLevels = 1;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
+		normalmap.res.width = heightmap.width;
+		normalmap.res.height = heightmap.height;
 
-		if (vkCreateImage(device.getLogicalDevice(), &imageInfo, nullptr, &normalmap.image) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create  image!");
-		}
+		Helper::createImage(device, normalmap.res.width, normalmap.res.height, 1, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, normalmap.res.image, normalmap.res.mem);
 
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(device.getLogicalDevice(), normalmap.image, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = device.findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		if (vkAllocateMemory(device.getLogicalDevice(), &allocInfo, nullptr, &normalmap.mem) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate image memory!");
-		}
-
-		vkBindImageMemory(device.getLogicalDevice(), normalmap.image, normalmap.mem, 0);
-
-
-		/*view*/
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = normalmap.image;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		viewInfo.subresourceRange.baseMipLevel = 0;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = 1;
-		viewInfo.subresourceRange.levelCount = 1;
-
-		if (vkCreateImageView(device.getLogicalDevice(), &viewInfo, nullptr, &normalmap.view) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture image view!");
-		}
+		normalmap.res.view = Helper::createImageView(device, normalmap.res.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 		/*framebuffer*/
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass = renderPass;
 		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = &normalmap.view;
+		framebufferInfo.pAttachments = &normalmap.res.view;
 		framebufferInfo.width = heightmap.width;
 		framebufferInfo.height = heightmap.height;
 		framebufferInfo.layers = 1;
@@ -343,29 +237,10 @@ namespace v {
 		samplerInfo.maxLod = 200.0f;
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
-		if (vkCreateSampler(device.getLogicalDevice(), &samplerInfo, nullptr, &normalmap.sampler) != VK_SUCCESS) {
+		if (vkCreateSampler(device.getLogicalDevice(), &samplerInfo, nullptr, &normalmap.res.sampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}
 	}
-
-	void Terrain::createNormalMapDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool) {
-		descriptorSetsNormalMap.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-
-		for (int i = 0; i < descriptorSetsNormalMap.size(); i++) {
-
-			VkDescriptorImageInfo skyboxImageInfo{};
-			skyboxImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			skyboxImageInfo.imageView = normalmap.view;
-			skyboxImageInfo.sampler = normalmap.sampler;
-
-			DescriptorWriter(layout, descriptorPool)
-				.createDescriptorWriter(0, &skyboxImageInfo)
-				.build(descriptorSetsNormalMap[i]);
-
-		}
-	}
-
-
 
 
 	void Terrain::createVertexBuffer() {
@@ -444,6 +319,81 @@ namespace v {
 			DescriptorWriter(setLayout, pool)
 				.createDescriptorWriter(1, &bufferInfo)
 				.build(descriptorSets[i]);
+		}
+	}
+
+	void Terrain::createTextureResources(TextureResources& textureResources, std::string path) {
+		std::string texture_path = path;
+		int texWidth, texHeight, texChannels;
+		stbi_uc* pixels = stbi_load(texture_path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		int mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+		size_t imageSize = texWidth * texHeight * 4;
+		if (!pixels) {
+			throw std::runtime_error("failed to load texture image!");
+		}
+
+		textureResources.height = texHeight;
+		textureResources.width = texWidth;
+
+
+		Buffer stagingBuffer{ device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+		stagingBuffer.map(imageSize);
+		stagingBuffer.writeToBuffer((void*)pixels);
+		stagingBuffer.unmap();
+		stbi_image_free(pixels);
+
+		Helper::createImage(device, texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureResources.image, textureResources.mem);
+
+		Helper::transitionImageLayout(device, textureResources.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels, 1);
+		Helper::copyBufferToImage(device, stagingBuffer.getBuffer(), textureResources.image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
+		Helper::generateMipmaps(device, textureResources.image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
+
+		textureResources.view = Helper::createImageView(device, textureResources.image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
+
+
+		/*sampler*/
+		VkPhysicalDeviceProperties properties{};
+		vkGetPhysicalDeviceProperties(device.getPhysicalDevice(), &properties);
+
+		VkSamplerCreateInfo samplerInfo{};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.minLod = 0.0f; // Optional
+		samplerInfo.maxLod = static_cast<float>(mipLevels);
+		samplerInfo.mipLodBias = 0.0f; // Optional
+
+		if (vkCreateSampler(device.getLogicalDevice(), &samplerInfo, nullptr, &textureResources.sampler) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create texture sampler!");
+		}
+	}
+
+	void Terrain::createTextureDescriptorSet(Device& device, TextureResources& textureResources,
+		DescriptorSetLayout& layout, DescriptorPool& pool) {
+
+		textureResources.descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+		for (int i = 0; i < textureResources.descriptorSets.size(); i++) {
+
+			VkDescriptorImageInfo skyboxImageInfo{};
+			skyboxImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			skyboxImageInfo.imageView = textureResources.view;
+			skyboxImageInfo.sampler = textureResources.sampler;
+
+			DescriptorWriter(layout, pool)
+				.createDescriptorWriter(0, &skyboxImageInfo)
+				.build(textureResources.descriptorSets[i]);
+
 		}
 	}
 

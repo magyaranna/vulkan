@@ -120,9 +120,9 @@ namespace v {
 
     void SkyBox::createDescriptorSets(DescriptorSetLayout& layout, DescriptorPool& descriptorPool) {
 
-        descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+        skybox.descriptorSets.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
 
-        for (int i = 0; i < descriptorSets.size(); i++) {
+        for (int i = 0; i < skybox.descriptorSets.size(); i++) {
 
             VkDescriptorImageInfo skyboxImageInfo{};
             skyboxImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -131,7 +131,7 @@ namespace v {
            
             DescriptorWriter(layout, descriptorPool)
                 .createDescriptorWriter(0, &skyboxImageInfo)
-                .build(descriptorSets[i]);
+                .build(skybox.descriptorSets[i]);
 
         }
     }

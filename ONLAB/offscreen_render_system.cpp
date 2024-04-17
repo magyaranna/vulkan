@@ -1,45 +1,45 @@
-#include "offscreen_render_system.h"
+#include "offscreen_render_System.h"
 
 
 namespace v {
 
 
 
-	OffScreenRenderSystem::OffScreenRenderSystem(Device& device, std::vector<VkDescriptorSetLayout> setLayouts, VkRenderPass renderPass) : device(device) {
-		ts = std::make_unique<TS_query>(device);
-		createPipelineLayout(setLayouts);
+	OffScreenRenderSystem::OffScreenRenderSystem(Device& device, TerrainRenderSystem& terrainRenderSystem,
+		std::vector<VkDescriptorSetLayout> setLayouts, std::vector<VkDescriptorSetLayout> terrainSetLayouts, VkRenderPass renderPass) : device(device), terrainRenderSystem(terrainRenderSystem) {
+		createPipelineLayout(setLayouts, terrainSetLayouts);
 		createPipeline(renderPass);
 	}
 	OffScreenRenderSystem::~OffScreenRenderSystem() {
-		
+
 		vkDestroyPipelineLayout(device.getLogicalDevice(), pipelineLayout, nullptr);
+		vkDestroyPipelineLayout(device.getLogicalDevice(), terrainPipelineLayout, nullptr);
 	}
 
 
-	void OffScreenRenderSystem::renderGameObjects(OffScreenRenderInfo renderinfo, DepthShadowMap& shadowMap) {
+	void OffScreenRenderSystem::renderGameObjects(VkCommandBuffer& cmd, int currentFrame, VkRenderPass& renderPass, FramebufferResources& depthBuffer,
+		Camera& camera, Terrain& terrain, std::unordered_map<unsigned int, std::unique_ptr<GameObject>>& gameobjects, Gui& gui, glm::vec2 viewport) {
 
 
-		VkRenderPassBeginInfo shadowRenderPassInfo = {};
-		shadowRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		VkRenderPassBeginInfo renderPassInfo = {};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
-		shadowRenderPassInfo.renderPass = renderinfo.renderPass;
-		shadowRenderPassInfo.framebuffer = shadowMap.frameBuffer;
+		renderPassInfo.renderPass = renderPass;
+		renderPassInfo.framebuffer = depthBuffer.framebuffer;
 
-		shadowRenderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.offset = { 0, 0 };
 
-		VkExtent2D extent{ shadowMap.dim, shadowMap.dim };
-		shadowRenderPassInfo.renderArea.extent = extent;
+		VkExtent2D extent{ depthBuffer.res.width, depthBuffer.res.height };
+		renderPassInfo.renderArea.extent = extent;
 
 		std::array<VkClearValue, 1> shadowClearValues = {};
 		shadowClearValues[0].depthStencil = { 1.0f, 0 };
 
-		shadowRenderPassInfo.clearValueCount = static_cast<uint32_t>(shadowClearValues.size());
-		shadowRenderPassInfo.pClearValues = shadowClearValues.data();
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(shadowClearValues.size());
+		renderPassInfo.pClearValues = shadowClearValues.data();
 
-		// Reset query pool
-		ts->resetQueryPool(renderinfo.cmd);
 
-		vkCmdBeginRenderPass(renderinfo.cmd, &shadowRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBeginRenderPass(cmd, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		VkViewport v{};
 		v.x = 0.0f;
@@ -53,39 +53,48 @@ namespace v {
 		s.offset = { 0, 0 };
 		s.extent = extent;
 
-		vkCmdSetViewport(renderinfo.cmd, 0, 1, &v);
-		vkCmdSetScissor(renderinfo.cmd, 0, 1, &s);
+		vkCmdSetViewport(cmd, 0, 1, &v);
+		vkCmdSetScissor(cmd, 0, 1, &s);
 
-		//writetimestamp
-		ts->writeTimeStamp(renderinfo.cmd, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 		{
-			if (!renderinfo.gui.frontface)
-				vkCmdBindPipeline(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
-			else
-				vkCmdBindPipeline(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_peterpanning->getGraphicsPipeline());
+		    /*terrain*/
+
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, terrainPipeline->getGraphicsPipeline());
+
+			std::array<TerrainRenderSystem::pushConstantTesc, 1> constants1 = { {viewport, gui.tessFactor} };
+			vkCmdPushConstants(cmd, terrainPipelineLayout, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, 0, sizeof(TerrainRenderSystem::pushConstantTesc), constants1.data());
+
+			std::array<TerrainRenderSystem::pushConstantTese, 1> constants2 = { gui.dFactor, glm::vec4(0.0f ,0.0f ,0.0f ,0.0f )};
+			vkCmdPushConstants(cmd, terrainPipelineLayout, VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, 12, sizeof(TerrainRenderSystem::pushConstantTese), constants2.data());
 
 
-			vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &renderinfo.light->getLightDescriptorSet(renderinfo.currentFrame), 0, nullptr);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, terrainPipelineLayout, 0, 1, &terrain.getGrassTextureDescriptorSets(currentFrame), 0, nullptr);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, terrainPipelineLayout, 1, 1, &camera.getDescriptorSet(currentFrame), 0, nullptr);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, terrainPipelineLayout, 2, 1, &terrain.getDescriptorSet(currentFrame), 0, nullptr);
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, terrainPipelineLayout, 3, 1, &terrain.getHeightMapDescriptorSet(currentFrame), 0, nullptr);
 
-			vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderinfo.terrain->getDefaultTextureDescriptorSets(renderinfo.currentFrame), 0, nullptr);
-			vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &renderinfo.terrain->getDescriptorSet(renderinfo.currentFrame), 0, nullptr);
-			renderinfo.terrain->draw(renderinfo.cmd);
+			terrain.draw(cmd);
 
-			for (int i = 0; i < renderinfo.gameobjects.size(); i++) {
-				vkCmdBindDescriptorSets(renderinfo.cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &renderinfo.gameobjects.at(i)->getDescriptorSet(renderinfo.currentFrame), 0, nullptr);
-				renderinfo.gameobjects.at(i)->model->draw(renderinfo.cmd, pipelineLayout, renderinfo.currentFrame, true, 0);
+
+			/*gameobjects*/
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
+
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &camera.getDescriptorSet(currentFrame), 0, nullptr);
+
+			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &terrain.getGrassTextureDescriptorSets(currentFrame), 0, nullptr);
+
+			for (int i = 0; i < gameobjects.size(); i++) {
+				vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &gameobjects.at(i)->getDescriptorSet(currentFrame), 0, nullptr);
+				gameobjects.at(i)->model->draw(cmd, pipelineLayout, currentFrame, true, 0);
 			}
-
 		}
-		//writetimestamp
-		ts->writeTimeStamp(renderinfo.cmd, 1, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
-
-		vkCmdEndRenderPass(renderinfo.cmd);
+		
+		vkCmdEndRenderPass(cmd);
 
 	}
 
 
-	void OffScreenRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayouts) {   //texture, modelmx, light
+	void OffScreenRenderSystem::createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayouts, std::vector<VkDescriptorSetLayout> terrainSetLayouts) {
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -99,24 +108,54 @@ namespace v {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
 
+		VkPipelineLayoutCreateInfo terrainPipelineLayoutInfo{};
+		terrainPipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+
+		std::vector<VkDescriptorSetLayout> layouts2 = terrainSetLayouts; 
+		terrainPipelineLayoutInfo.setLayoutCount = layouts2.size();
+		terrainPipelineLayoutInfo.pSetLayouts = layouts2.data();
+
+		std::vector<VkPushConstantRange> ranges;
+
+		
+		VkPushConstantRange pushConstantRange1 = {};
+		pushConstantRange1.stageFlags = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		pushConstantRange1.offset = 0;
+		pushConstantRange1.size = sizeof(TerrainRenderSystem::pushConstantTesc);
+
+		VkPushConstantRange pushConstantRange2 = {};
+		pushConstantRange2.stageFlags = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		pushConstantRange2.offset = 12;
+		pushConstantRange2.size = sizeof(TerrainRenderSystem::pushConstantTese);
+
+
+		ranges.push_back(pushConstantRange1);
+		ranges.push_back(pushConstantRange2);
+
+		terrainPipelineLayoutInfo.pPushConstantRanges = ranges.data();
+		terrainPipelineLayoutInfo.pushConstantRangeCount = ranges.size();
+
+		if (vkCreatePipelineLayout(device.getLogicalDevice(), &terrainPipelineLayoutInfo, nullptr, &terrainPipelineLayout) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create pipeline layout!");
+		}
+
 
 	}
 	void OffScreenRenderSystem::createPipeline(VkRenderPass renderPass) {
 
-		const std::string vert = "shaders/depthVert.spv";
-		const std::string frag = "shaders/depthFrag.spv";
+		std::string vert = "shaders/depthVert.spv";
+		std::string frag = "shaders/depthFrag.spv";
 
 		ConfigInfo configinfo{};
 		Pipeline::defaultPipelineConfigInfo(configinfo);
 
 		configinfo.pipelineLayout = pipelineLayout;
-    	configinfo.renderPass = renderPass;
+		configinfo.renderPass = renderPass;
 
-		
-		configinfo.rasterizer.cullMode = VK_CULL_MODE_NONE;  /*/*/
+
+		configinfo.rasterizer.cullMode = VK_CULL_MODE_NONE;  
 		configinfo.colorBlendAttachment.blendEnable = VK_FALSE;
-		//configinfo.rasterizer.depthClampEnable = deviceFeatures.depthClamp;
-
+		
 		/*vertexinput*/
 		VkVertexInputBindingDescription bindingDescription{};
 		bindingDescription.binding = 0;
@@ -148,12 +187,57 @@ namespace v {
 		configinfo.vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(configinfo.attributeDescriptions.size());
 		configinfo.vertexInputInfo.pVertexBindingDescriptions = &configinfo.bindingDescriptions;
 		configinfo.vertexInputInfo.pVertexAttributeDescriptions = configinfo.attributeDescriptions.data();
-		/**/
 
 		pipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo);
 
-		configinfo.rasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
-		pipeline_peterpanning = std::make_unique<Pipeline>(device, vert, frag, configinfo);
+
+		vert = "shaders/terrainVert.spv";
+		frag = "shaders/depthFrag.spv";
+		const std::string tesc = "shaders/terrainTesc.spv";
+		const std::string tese = "shaders/terrainDepthTese.spv";
+
+		ConfigInfo configinfo2{};
+		Pipeline::defaultPipelineConfigInfo(configinfo2);
+
+		configinfo2.inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+		configinfo2.tessellation.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+		configinfo2.tessellation.patchControlPoints = 4;
+
+		configinfo2.renderPass = renderPass;
+		configinfo2.pipelineLayout = terrainPipelineLayout;
+
+		
+		attrPos.binding = 0;
+		attrPos.location = 0;
+		attrPos.format = VK_FORMAT_R32G32B32_SFLOAT;
+		attrPos.offset = offsetof(Vertex, pos);
+
+		VkVertexInputAttributeDescription attrNormal{};
+		attrNormal.binding = 0;
+		attrNormal.location = 1;
+		attrNormal.format = VK_FORMAT_R32G32B32_SFLOAT;
+		attrNormal.offset = offsetof(Vertex, normal);
+
+		attrUV.binding = 0;
+		attrUV.location = 2;
+		attrUV.format = VK_FORMAT_R32G32_SFLOAT;
+		attrUV.offset = offsetof(Vertex, texCoord);
+
+		std::vector< VkVertexInputAttributeDescription> attributeDescriptions2;
+		attributeDescriptions2.push_back(attrPos);
+		attributeDescriptions2.push_back(attrNormal);
+		attributeDescriptions2.push_back(attrUV);
+
+		configinfo2.vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		configinfo2.bindingDescriptions = Vertex::getBindingDescription();
+		configinfo2.attributeDescriptions = attributeDescriptions2;
+		configinfo2.vertexInputInfo.vertexBindingDescriptionCount = 1;
+		configinfo2.vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(configinfo2.attributeDescriptions.size());
+		configinfo2.vertexInputInfo.pVertexBindingDescriptions = &configinfo2.bindingDescriptions;
+		configinfo2.vertexInputInfo.pVertexAttributeDescriptions = configinfo2.attributeDescriptions.data();
+
+		terrainPipeline = std::make_unique<Pipeline>(device, vert, frag, configinfo2, tesc, tese);
+
 	}
 
 }

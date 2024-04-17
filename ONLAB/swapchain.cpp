@@ -271,7 +271,7 @@ namespace v {
     void SwapChain::createDepthResources() {
         VkFormat depthFormat = Helper::findDepthFormat(device);
 
-        Helper::createImage(device, swapChainExtent.width, swapChainExtent.height, 1, device.getMSAASampleCountFlag(), depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+        Helper::createImage(device, swapChainExtent.width, swapChainExtent.height, 1, device.getMSAASampleCountFlag(), depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
         depthImageView = Helper::createImageView(device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
     }
 

@@ -22,26 +22,26 @@ namespace v {
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-        std::vector<VkDescriptorSetLayout> layouts = setLayouts; //camera, terrain modelmx, light , shadowmap,,cascadeShadowmap, cascadeuniform
+        std::vector<VkDescriptorSetLayout> layouts = setLayouts; 
         pipelineLayoutInfo.setLayoutCount = layouts.size();
         pipelineLayoutInfo.pSetLayouts = layouts.data();
 
         std::vector<VkPushConstantRange> ranges;
 
         VkPushConstantRange pushConstantRange1 = {};
-        pushConstantRange1.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        pushConstantRange1.stageFlags = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         pushConstantRange1.offset = 0;
-        pushConstantRange1.size = sizeof(pushConstants);
+        pushConstantRange1.size = sizeof(pushConstantTesc);   //12b
 
         VkPushConstantRange pushConstantRange2 = {};
         pushConstantRange2.stageFlags = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-        pushConstantRange2.offset = sizeof(pushConstants);
-        pushConstantRange2.size = sizeof(float);
+        pushConstantRange2.offset = 12;
+        pushConstantRange2.size = sizeof(pushConstantTese);  //20b
 
         VkPushConstantRange pushConstantRange3 = {};
-        pushConstantRange3.stageFlags = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-        pushConstantRange3.offset = sizeof(pushConstants)+ sizeof(float);
-        pushConstantRange3.size = sizeof(pushConstantTesc);
+        pushConstantRange3.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        pushConstantRange3.offset = 36;
+        pushConstantRange3.size = sizeof(pushConstants);
 
         ranges.push_back(pushConstantRange1);
         ranges.push_back(pushConstantRange2);
@@ -122,14 +122,23 @@ namespace v {
             pipelineWireFrame = std::make_unique<Pipeline>(device, vert, frag, configinfo, tesc, tese);
 
 
-            });
+           });
 
 
     }
 
-    void TerrainRenderSystem::renderTerrain(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderInfo) {
+    void TerrainRenderSystem::renderTerrain(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderInfo, Camera& camera, glm::vec4 clipPlane) {
 
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, renderInfo.gui.wireframe ? pipelineWireFrame->getGraphicsPipeline() : pipeline->getGraphicsPipeline());
+
+
+        
+       
+        std::array<pushConstantTesc, 1> constants1 = { {renderInfo.viweport, renderInfo.gui.tessFactor} };
+        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, 0, sizeof(pushConstantTesc), constants1.data());
+
+        std::array<pushConstantTese, 1> constants2 = { renderInfo.gui.dFactor, clipPlane };
+        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, 12, sizeof(pushConstantTese), constants2.data());
 
 
         renderInfo.gui.displayNormalmap == true ? pushConstants[0] = 1 : pushConstants[0] = 0;
@@ -139,34 +148,32 @@ namespace v {
         renderInfo.gui.cascadecolor == true ? pushConstants[4] = 1 : pushConstants[4] = 0;
         renderInfo.gui.pcf == true ? pushConstants[5] = 1 : pushConstants[5] = 0;
         renderInfo.gui.bias == true ? pushConstants[6] = 1 : pushConstants[6] = 0;
-        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstants), pushConstants.data());
-
-        std::array<float, 1> constants1 = { renderInfo.gui.dFactor };
-        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, 28, sizeof(float), constants1.data());
-
-        std::array<pushConstantTesc, 1> constants2 = { {renderInfo.viweport, renderInfo.gui.tessFactor} };
-        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, 32, sizeof(pushConstantTesc), constants2.data());
+        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 36, sizeof(pushConstants), pushConstants.data());
 
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderInfo.camera->getDescriptorSet(currentFrame), 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &renderInfo.terrain->getGrassTextureDescriptorSets(currentFrame), 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &camera.getDescriptorSet(currentFrame), 0, nullptr);
+        //modelmx
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &renderInfo.terrain->getDescriptorSet(currentFrame), 0, nullptr);
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 2, 1, &renderInfo.light->getLightDescriptorSet(currentFrame), 0, nullptr);
+        
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 3, 1, &renderInfo.terrain->getHeightMapDescriptorSet(currentFrame), 0, nullptr);
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 3, 1, &renderInfo.simpleShadowMap, 0, nullptr);
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 4, 1, &renderInfo.cascadeShadowmap, 0, nullptr);
+        
+       /* vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 4, 1, &renderInfo.cascadeShadowmap, 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 5, 1, &renderInfo.cascadeLightSpaceMx, 0, nullptr);
-
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 6, 1, &renderInfo.vsmShadowmap, 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 7, 1, &renderInfo.esmShadowmap, 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 8, 1, &renderInfo.simpleShadowMap, 0, nullptr);
+        */
 
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 4, 1, &renderInfo.terrain->getNormalMapDescriptorSet(currentFrame), 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 5, 1, &renderInfo.light->getLightDescriptorSet(currentFrame), 0, nullptr);
 
-        //modelmx
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &renderInfo.terrain->getDescriptorSet(currentFrame), 0, nullptr);
-
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 8, 1, &renderInfo.terrain->getHeightMapDescriptorSet(currentFrame), 0, nullptr);
-
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 9, 1, &renderInfo.terrain->getNormalMapDescriptorSet(currentFrame), 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 6, 1, &renderInfo.terrain->getSnowTextureDescriptorSets(currentFrame), 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 7, 1, &renderInfo.terrain->getSandTextureDescriptorSets(currentFrame), 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 8, 1, &renderInfo.terrain->getRockTextureDescriptorSets(currentFrame), 0, nullptr);
 
 
         renderInfo.terrain->draw(cmd);

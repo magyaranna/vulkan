@@ -159,18 +159,23 @@
     <ClCompile Include="model.cpp" />
     <ClCompile Include="normalmap_render_system.cpp" />
     <ClCompile Include="offscreen_render_system.cpp" />
+    <ClCompile Include="shadowmap_render_system.cpp" />
     <ClCompile Include="pipeline.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="render_system.cpp" />
+    <ClCompile Include="scene.cpp" />
     <ClCompile Include="shadowmaps.cpp" />
     <ClCompile Include="skybox.cpp" />
     <ClCompile Include="skybox_render_system.cpp" />
+    <ClCompile Include="sky_render_system.cpp" />
     <ClCompile Include="swapchain.cpp" />
     <ClCompile Include="terrain.cpp" />
     <ClCompile Include="terrain_render_system.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="timestamp_query.cpp" />
     <ClCompile Include="vsm_render_system.cpp" />
+    <ClCompile Include="water.cpp" />
+    <ClCompile Include="water_render_system.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -183,6 +188,7 @@
     <ClInclude Include="device.h" />
     <ClInclude Include="esm_render_system.h" />
     <ClInclude Include="normalmap_render_system.h" />
+    <ClInclude Include="offscreen_render_system.h" />
     <ClInclude Include="renderinfo.h" />
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="helper.h" />
@@ -191,21 +197,26 @@
     <ClInclude Include="light.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="model.h" />
-    <ClInclude Include="offscreen_render_system.h" />
+    <ClInclude Include="shadowmap_render_system.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="render_system.h" />
     <ClInclude Include="pipelinemanager.h" />
+    <ClInclude Include="scene.h" />
     <ClInclude Include="shadowmaps.h" />
     <ClInclude Include="skybox.h" />
     <ClInclude Include="skybox_render_system.h" />
+    <ClInclude Include="sky_render_system.h" />
     <ClInclude Include="swapchain.h" />
     <ClInclude Include="terrain.h" />
     <ClInclude Include="terrain_render_system.h" />
     <ClInclude Include="texture.h" />
+    <ClInclude Include="timer.h" />
     <ClInclude Include="timestamp_query.h" />
     <ClInclude Include="vertex.h" />
     <ClInclude Include="vsm_render_system.h" />
+    <ClInclude Include="water.h" />
+    <ClInclude Include="water_render_system.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -219,14 +230,19 @@
     <None Include="shaders\scene.vert" />
     <None Include="shaders\depth.frag" />
     <None Include="shaders\depth.vert" />
+    <None Include="shaders\sky.frag" />
     <None Include="shaders\skybox.frag" />
     <None Include="shaders\skybox.vert" />
+    <None Include="shaders\SMdepth.vert" />
     <None Include="shaders\terrain.frag" />
     <None Include="shaders\terrain.tesc" />
     <None Include="shaders\terrain.tese" />
     <None Include="shaders\terrain.vert" />
+    <None Include="shaders\terraindepth.tese" />
     <None Include="shaders\vcsm.frag" />
     <None Include="shaders\vsm.frag" />
+    <None Include="shaders\water.frag" />
+    <None Include="shaders\water.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="shaders\quad.vert" />

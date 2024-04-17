@@ -4,6 +4,7 @@
 #include "pipeline.h"
 
 #include "renderinfo.h"
+#include "pipelinemanager.h"
 
 
 namespace v {
@@ -12,6 +13,7 @@ namespace v {
 	private:
 
 		Device& device;
+		PipelineManager& pipelineManager;
 
 		std::unique_ptr<Pipeline> pipeline;
 		VkPipelineLayout pipelineLayout;
@@ -27,10 +29,10 @@ namespace v {
 
 	public:
 
-		RenderSystem(Device& device, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts);
+		RenderSystem(Device& device, PipelineManager& pipelineManager, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts);
 		~RenderSystem();
 
-		void renderGameObjects(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderinfo);
+		void renderGameObjects(VkCommandBuffer& cmd, int currentFrame, RenderInfo renderinfo, Camera& camera, glm::vec4 clipPlane = glm::vec4(0.0, -1.0, 0.0, 100000.0));
 
 		//std::array<int, 6> getPushConstants() { return pushConstants; }
 		void setPushConstants(int i, int value) { pushConstants[i] = value; }

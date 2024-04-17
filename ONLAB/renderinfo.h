@@ -7,6 +7,7 @@
 #include "light.h"
 #include "gui.h"
 #include "gameobject.h"
+#include "water.h"
 
 namespace v {
 
@@ -23,6 +24,8 @@ namespace v {
         VkDescriptorSet cascadeLightSpaceMx;
         VkDescriptorSet vsmShadowmap;
         VkDescriptorSet esmShadowmap;
+
+        std::unique_ptr<Water> const& water;
     };
 
     struct OffScreenRenderInfo {

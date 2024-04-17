@@ -88,6 +88,8 @@ namespace v {
         deviceFeatures.sampleRateShading = VK_TRUE; // enable sample shading feature for the device
         deviceFeatures.tessellationShader = VK_TRUE;
         deviceFeatures.fillModeNonSolid = VK_TRUE;
+        deviceFeatures.shaderClipDistance = VK_TRUE;
+
 
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -140,7 +142,7 @@ namespace v {
         VkPhysicalDeviceFeatures supportedFeatures;
         vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-        return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy && supportedFeatures.tessellationShader; 
+        return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy && supportedFeatures.tessellationShader && supportedFeatures.shaderClipDistance; 
     }
 
 

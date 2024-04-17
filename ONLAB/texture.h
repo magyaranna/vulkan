@@ -16,14 +16,6 @@
 
 namespace v {
 
-	struct TextureResources {
-		VkImage image;
-		VkDeviceMemory mem;
-		VkImageView view;
-		VkSampler sampler;
-	};
-
-
 	class Texture {
 	private:
 		Device& device;
@@ -35,9 +27,6 @@ namespace v {
 		TextureResources normalmap;
 
 		uint32_t mipLevels;
-
-		std::vector<VkDescriptorSet> descriptorSetsTexture;
-		std::vector<VkDescriptorSet> descriptorSetsNormalmap;
 
 		void createTextureImage();
 		void createTextureImageView();
@@ -60,16 +49,12 @@ namespace v {
 		void bindNormalMap(VkCommandBuffer cmd, VkPipelineLayout pipelinelayout, int currentframe, int set);
 
 
-		VkDescriptorSet& getDescriptorSetTexture(int i) { return descriptorSetsTexture[i]; }
-		VkDescriptorSet& getDescriptorSetNormalmap(int i) { return descriptorSetsNormalmap[i]; }
+		VkDescriptorSet& getDescriptorSetTexture(int i) { return texture.descriptorSets[i]; }
+		VkDescriptorSet& getDescriptorSetNormalmap(int i) { return normalmap.descriptorSets[i]; }
 
 		std::vector<VkDescriptorSet> getTextureDescriptorSets() {
-			return descriptorSetsTexture;
+			return texture.descriptorSets;
 		};
-
-
-		static std::vector<VkDescriptorSet> createDefaultTextureDescriptorSet(Device& device, TextureResources& textureResources, VkDescriptorSetLayout layout, VkDescriptorPool pool);
-
 	};
 
 

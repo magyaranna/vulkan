@@ -49,7 +49,8 @@ namespace v {
 		VkCommandBuffer beginFrame();
 		void endFrame();
 
-		void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
+		
+		void beginRenderPass(VkCommandBuffer commandBuffer, VkFramebuffer fb = VK_NULL_HANDLE, VkRenderPass renderPass = VK_NULL_HANDLE);
 
 		void endRenderPass(VkCommandBuffer commandBuffer);
 

@@ -1,23 +1,26 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
+layout(set = 1, binding = 0) uniform GlobalUniformBufferObject { 
     mat4 view;
     mat4 proj;
 } g;
 
 
-layout(set = 1,  binding = 1) uniform UniformBufferObject {	
+layout(set = 2,  binding = 1) uniform UniformBufferObject {	
     mat4 model;  
 
 } ubo;
 
 
-layout (set = 8, binding = 0) uniform sampler2D displacementMap; 
+layout (set = 3, binding = 0) uniform sampler2D displacementMap; 
 
 layout( push_constant ) uniform pushConstants {
-  layout(offset = 28) float displacementFactor;
+ layout(offset = 12) 
+  float displacementFactor;
+  vec4 clipPlane;
 } p;
 
+#extension GL_EXT_clip_cull_distance: enable
 
 layout(quads, equal_spacing  , cw) in;
 
@@ -26,9 +29,10 @@ layout (location = 1) in vec2 inUV[];
 
 layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec3 fragNormal;
-layout(location = 2) out vec3 worldPos;
+layout(location = 2) out vec3 outWorldPos;
 layout(location = 3) out vec3 viewPos;
 layout(location = 4) out vec2 outUV;
+layout(location = 5) out float height;
 
 void main()
 {
@@ -40,7 +44,7 @@ void main()
 	vec2 uv2 = mix(inUV[3], inUV[2], u);
 	outUV = mix(uv1, uv2, v);
 
-    float height = texture(displacementMap, outUV).r * p.displacementFactor;
+    height = texture(displacementMap, outUV).r * p.displacementFactor;
 
     vec4 p00 = gl_in[0].gl_Position;
     vec4 p01 = gl_in[1].gl_Position;
@@ -53,10 +57,13 @@ void main()
     pos.y += height;
 
    
-    gl_Position = g.proj * g.view * pos;
+    gl_Position = g.proj * g.view * ubo.model*  pos;
 
 	fragPos = (pos / pos.w).xyz;
     viewPos = (g.view * ubo.model * pos).xyz;  
-    worldPos =  (ubo.model * pos).xyz;
-    
+    vec4 worldPos = ubo.model * pos;
+
+    gl_ClipDistance[0] = dot(worldPos ,p.clipPlane);
+
+    outWorldPos = worldPos.xyz;
 }

@@ -15,7 +15,9 @@ namespace v {
 		std::vector<std::function<void()>> vec;
 
 	public:
-		PipelineManager(Device& device) : device(device) {};
+		PipelineManager(Device& device) : device(device) {
+			compile();
+		};
 		~PipelineManager() {};
 
 		void addPipelineCreation(std::function<void()> func) {
@@ -33,8 +35,10 @@ namespace v {
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/terrain.frag -o shaders/terrainFrag.spv");
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/terrain.tesc -o shaders/terrainTesc.spv");
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/terrain.tese -o shaders/terrainTese.spv");
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/terraindepth.tese -o shaders/terrainDepthTese.spv");
 
-			system("%VULKAN_SDK%/Bin/glslc.exe shaders/depth.vert -o shaders/depthVert");
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/depth.vert -o shaders/depthVert.spv");
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/SMdepth.vert -o shaders/SMdepthVert.spv");
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/depthCascade.vert -o shaders/depthCascadeVert.spv");
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/depth.frag -o shaders/depthFrag");
 
@@ -52,6 +56,11 @@ namespace v {
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/skybox.vert -o shaders/skyboxVert.spv");
 
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/normalmap.frag -o shaders/normalmapFrag.spv");
+
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/water.vert -o shaders/waterVert.spv");
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/water.frag -o shaders/waterFrag.spv");
+
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/sky.frag -o shaders/skyFrag.spv");
 
 		}
 

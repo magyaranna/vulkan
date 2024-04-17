@@ -94,12 +94,12 @@ namespace v {
 		shadowRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
 		shadowRenderPassInfo.renderPass = renderPass;
-		shadowRenderPassInfo.framebuffer = terrain.normalmap.framebuffer;
+		shadowRenderPassInfo.framebuffer = terrain.getNormalmap().framebuffer;
 
 
 		shadowRenderPassInfo.renderArea.offset = { 0, 0 };
 
-		VkExtent2D extent{ terrain.heightmap.height, terrain.heightmap.width };
+		VkExtent2D extent{ terrain.getHeightMapHeight(), terrain.getHeightMapWidth()};
 		shadowRenderPassInfo.renderArea.extent = extent;
 
 		std::array<VkClearValue, 1> shadowClearValues = {};
