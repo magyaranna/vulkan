@@ -81,6 +81,29 @@ namespace v {
             configinfo.multisampling.sampleShadingEnable = VK_TRUE;
             configinfo.multisampling.minSampleShading = .2f;
 
+
+
+            configinfo.rasterizer.cullMode = VK_CULL_MODE_NONE;
+            configinfo.depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+            configinfo.depthStencil.depthTestEnable = VK_TRUE;
+            configinfo.depthStencil.depthWriteEnable = VK_TRUE;
+            configinfo.depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+            configinfo.depthStencil.depthBoundsTestEnable = VK_FALSE;
+            configinfo.depthStencil.stencilTestEnable = VK_TRUE;
+
+            configinfo.depthStencil.front = {};
+            configinfo.depthStencil.front.compareOp = VK_COMPARE_OP_ALWAYS; 
+            configinfo.depthStencil.front.passOp = VK_STENCIL_OP_REPLACE; 
+            configinfo.depthStencil.front.failOp = VK_STENCIL_OP_KEEP;
+            configinfo.depthStencil.front.depthFailOp = VK_STENCIL_OP_KEEP; 
+            configinfo.depthStencil.front.reference = 1;
+            configinfo.depthStencil.front.compareMask = 0xff;
+            configinfo.depthStencil.front.writeMask = 0xff;
+            
+            configinfo.depthStencil.back = configinfo.depthStencil.front;
+
+
+
             VkVertexInputAttributeDescription attrPos{};
             attrPos.binding = 0;
             attrPos.location = 0;

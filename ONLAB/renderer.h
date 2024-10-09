@@ -19,6 +19,7 @@ namespace v {
 		int currentFrameIndex = 0;
 
 		std::vector<VkCommandBuffer> commandBuffers;
+		std::vector<VkCommandBuffer> computeCommandBuffers;
 
 		uint32_t currentImageIndex;
 
@@ -28,6 +29,10 @@ namespace v {
 		VkCommandBuffer getCurrentCommandBuffer() const {
 			assert(isFrameStarted && "frame is on progress");
 			return commandBuffers[currentFrameIndex];
+		}
+
+		VkCommandBuffer getCurrentComputeCommandBuffer() const {
+			return computeCommandBuffers[currentFrameIndex];
 		}
 
 		void createColorRenderPass();
@@ -48,6 +53,9 @@ namespace v {
 
 		VkCommandBuffer beginFrame();
 		void endFrame();
+
+		VkCommandBuffer beginCompute();
+		void endCompute();
 
 		
 		void beginRenderPass(VkCommandBuffer commandBuffer, VkFramebuffer fb = VK_NULL_HANDLE, VkRenderPass renderPass = VK_NULL_HANDLE);

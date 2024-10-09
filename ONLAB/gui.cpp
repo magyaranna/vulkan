@@ -75,20 +75,18 @@ namespace v {
 
         ImGui::Checkbox("skybox", &skybox);
        
-
-     
         ImGui::Text("displacementFactor:");
-        ImGui::SliderFloat("1", &dFactor, 0.0f, 250.0f, "%.3f");
+        ImGui::SliderFloat("1", &dFactor, 0.0f, 3000.0f, "%.3f");
 
         ImGui::Text("tessellationFactor:");
-        ImGui::SliderFloat("2", &tessFactor, 5.0f, 100, "%.2f");
+        ImGui::SliderFloat("2", &tessFactor, 5.0f, 10000, "%.2f");
 
         ImGui::Checkbox("wireframe", &wireframe);
 
         ImGui::SeparatorText("");
 
 
-        
+ 
         if (ImGui::CollapsingHeader("Shadow Mapping", ImGuiTreeNodeFlags_None))
         {
             ImGui::Text("IsItemHovered: %d", ImGui::IsItemHovered());

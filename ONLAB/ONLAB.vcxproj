@@ -148,6 +148,7 @@
     <ClCompile Include="buffer.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="cascadeshadow_render_system.cpp" />
+    <ClCompile Include="compute_render_system.cpp" />
     <ClCompile Include="descriptors.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="esm_render_system.cpp" />
@@ -165,6 +166,7 @@
     <ClCompile Include="render_system.cpp" />
     <ClCompile Include="scene.cpp" />
     <ClCompile Include="shadowmaps.cpp" />
+    <ClCompile Include="sky.cpp" />
     <ClCompile Include="skybox.cpp" />
     <ClCompile Include="skybox_render_system.cpp" />
     <ClCompile Include="sky_render_system.cpp" />
@@ -184,6 +186,7 @@
     <ClInclude Include="buffer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="cascadeshadow_render_system.h" />
+    <ClInclude Include="compute_render_system.h" />
     <ClInclude Include="descriptors.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="esm_render_system.h" />
@@ -204,6 +207,7 @@
     <ClInclude Include="pipelinemanager.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="shadowmaps.h" />
+    <ClInclude Include="sky.h" />
     <ClInclude Include="skybox.h" />
     <ClInclude Include="skybox_render_system.h" />
     <ClInclude Include="sky_render_system.h" />
@@ -225,6 +229,7 @@
     <None Include="shaders\esm.frag" />
     <None Include="shaders\gaussblur.frag" />
     <None Include="shaders\gaussblur_cascade.frag" />
+    <None Include="shaders\multiscatteringLUT.comp" />
     <None Include="shaders\normalmap.frag" />
     <None Include="shaders\scene.frag" />
     <None Include="shaders\scene.vert" />
@@ -233,12 +238,14 @@
     <None Include="shaders\sky.frag" />
     <None Include="shaders\skybox.frag" />
     <None Include="shaders\skybox.vert" />
+    <None Include="shaders\skyviewLUT.comp" />
     <None Include="shaders\SMdepth.vert" />
     <None Include="shaders\terrain.frag" />
     <None Include="shaders\terrain.tesc" />
     <None Include="shaders\terrain.tese" />
     <None Include="shaders\terrain.vert" />
     <None Include="shaders\terraindepth.tese" />
+    <None Include="shaders\transmittanceLUT.comp" />
     <None Include="shaders\vcsm.frag" />
     <None Include="shaders\vsm.frag" />
     <None Include="shaders\water.frag" />

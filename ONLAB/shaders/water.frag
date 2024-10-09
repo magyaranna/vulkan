@@ -20,9 +20,9 @@ void main()
 
 	vec2 ndc = (clipSpace.xy / clipSpace.w)/ 2.0 + 0.5;
 
-	float waweStrength = 0.01;
-	vec2 distortion1 = (texture(dudvTexture, vec2(inUV.x, inUV.y+ p.moveFactor) ) * 2.0 - 1.0).rg * waweStrength;
-	vec2 distortion2 = (texture(dudvTexture, vec2(inUV.x, inUV.y) ) * 2.0 - 1.0).rg  * waweStrength;
+	float waweStrength = 0.015;
+	vec2 distortion1 = (texture(dudvTexture, vec2(inUV.x, inUV.y+ p.moveFactor)*20 ) * 2.0 - 1.0).rg * waweStrength;
+	vec2 distortion2 = (texture(dudvTexture, vec2(inUV.x, inUV.y) *20 ) * 2.0 - 1.0).rg  * waweStrength;
 
 	vec2 d = - distortion1 + distortion2;
 
@@ -32,8 +32,8 @@ void main()
 	vec4 reflection = texture(reflectionTexture, reflectionUV );
 	vec4 refraction = texture(refractionTexture,refractionUV);
 
-	float reflectionFactor = pow(dot(viewVector, vec3(0.0,1.0,0.0)), 1.5);
+	float reflectionFactor = pow(dot(viewVector, vec3(0.0,1.0,0.0)), 0.5);
 
-	outColor = mix(reflection, refraction, reflectionFactor);
-	outColor = mix(outColor, vec4(0.0, 0.3, 0.5, 1.0), 0.2);
+	vec4 color = mix(reflection, refraction, reflectionFactor);
+	outColor = vec4(mix(color, vec4(0.0, 0.3, 0.5, 1.0), 0.3).xyz, 1.0);
 } 

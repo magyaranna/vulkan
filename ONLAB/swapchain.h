@@ -29,6 +29,9 @@ namespace v {
 		std::vector<VkSemaphore> renderFinishedSemaphores;
 		std::vector<VkFence> inFlightFences;
 
+		std::vector<VkSemaphore> computeFinishedSemaphores;
+		std::vector<VkFence> computeInFlightFences;
+
 
 		VkImage colorImage;
 		VkDeviceMemory colorImageMemory;
@@ -83,6 +86,13 @@ namespace v {
 		//draw
 		VkResult acquireNextImage(uint32_t* imageIndex);
 		VkResult submitCommandBuffer(const VkCommandBuffer* buffers, uint32_t* imageIndex);
+		VkResult submitComputeCommandBuffer(const VkCommandBuffer* buffer);
+
+		void resetComputeFences() {
+			vkWaitForFences(device.getLogicalDevice(), 1, &computeInFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+			vkResetFences(device.getLogicalDevice(), 1, &computeInFlightFences[currentFrame]);
+
+		}
 
 		/**/
 		VkSwapchainKHR getSwapChain() { return swapChain; }
@@ -95,7 +105,9 @@ namespace v {
 		VkFramebuffer getSwapChainFramebuffers(int i) { return swapChainFramebuffers[i]; }
 		std::vector<VkSemaphore> getImageAvailableSemaphores() { return imageAvailableSemaphores; }
 		std::vector<VkSemaphore> getRenderFinishedSemaphores() { return renderFinishedSemaphores; }
+		std::vector<VkSemaphore> getComputeFinishedSemaphores() { return computeFinishedSemaphores; }
 		std::vector<VkFence> getInFlightFences() { return inFlightFences; }
+		std::vector<VkFence> getComputeInFlightFences() { return computeInFlightFences; }
 		VkImage getDepthImage() { return depthImage; }
 		VkDeviceMemory getDepthImageMemory() { return depthImageMemory; }
 		VkImageView getDepthImageView() { return depthImageView; }

@@ -62,6 +62,10 @@ namespace v {
 
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/sky.frag -o shaders/skyFrag.spv");
 
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/transmittanceLUT.comp -o shaders/transmittanceComp.spv");
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/multiscatteringLUT.comp -o shaders/multiscatteringComp.spv");
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/skyviewLUT.comp -o shaders/skyviewComp.spv");
+
 		}
 
 		void reload() {

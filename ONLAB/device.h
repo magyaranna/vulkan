@@ -21,9 +21,10 @@ namespace v {
 	struct QueueFamilyIndices {
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;
+		std::optional<uint32_t> computeFamily;
 
 		bool isComplete() {
-			return graphicsFamily.has_value() && presentFamily.has_value();
+			return graphicsFamily.has_value() && presentFamily.has_value() && computeFamily.has_value();
 		}
 	};
 	struct SwapChainSupportDetails {
@@ -48,8 +49,11 @@ namespace v {
 
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 		VkDevice logicalDevice;
+
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
+		VkQueue computeQueue;
+
 		VkCommandPool commandPool;
 
 	private:
@@ -61,7 +65,6 @@ namespace v {
 		void createCommandPool();
 
 		bool isDeviceSuitable(VkPhysicalDevice device);
-		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
 
 		//swapchain
@@ -74,6 +77,9 @@ namespace v {
 		~Device();
 		Device(const Device&) = delete;
 		void operator=(const Device&) = delete;
+
+		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+		QueueFamilyIndices indices;
 
 		SwapChainSupportDetails getSwapChainSupport() {
 			return querySwapChainSupport(physicalDevice);
@@ -89,6 +95,7 @@ namespace v {
 		VkDevice getLogicalDevice() { return logicalDevice; }
 		VkQueue getGraphicsQueue() { return graphicsQueue; }
 		VkQueue getPresentQueue() { return presentQueue; }
+		VkQueue getComputeQueue() { return computeQueue; }
 		VkCommandPool getCommandPool() { return commandPool; }
 		VkSampleCountFlagBits getMSAASampleCountFlag() { return msaaSamples; }
 

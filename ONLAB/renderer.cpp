@@ -32,6 +32,19 @@ namespace v {
         if (vkAllocateCommandBuffers(device.getLogicalDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate command buffers!");
         }
+
+        /*compute*/
+        computeCommandBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+
+        VkCommandBufferAllocateInfo allocInfo2{};
+        allocInfo2.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo2.commandPool = device.getCommandPool();
+        allocInfo2.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo2.commandBufferCount = (uint32_t)computeCommandBuffers.size();
+
+        if (vkAllocateCommandBuffers(device.getLogicalDevice(), &allocInfo2, computeCommandBuffers.data()) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate command buffers!");
+        }
     }
 
 
@@ -81,6 +94,34 @@ namespace v {
 
         isFrameStarted = false;
         currentFrameIndex = (currentFrameIndex + 1) % SwapChain::MAX_FRAMES_IN_FLIGHT;
+    }
+
+
+    VkCommandBuffer Renderer::beginCompute() {
+
+        swapchain->resetComputeFences();
+
+        auto commandBuffer = getCurrentComputeCommandBuffer();
+
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        //beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT; //imgui
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+            throw std::runtime_error("failed to begin recording command buffer!");
+        }
+
+        return commandBuffer;
+
+    }
+    void Renderer::endCompute() {
+
+        auto commandBuffer = getCurrentComputeCommandBuffer();
+        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+            throw std::runtime_error("failed to record command buffer!");
+        }
+
+        swapchain->submitComputeCommandBuffer(&commandBuffer);
+
     }
 
 

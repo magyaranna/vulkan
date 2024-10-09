@@ -82,7 +82,7 @@ namespace v {
 		unsigned char* pixels;
 		int texWidth, texHeight, texChannels;
 
-		pixels = stbi_load("textures/heightmap2.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		pixels = stbi_load("textures/terrain/heightmap5.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		if (!pixels) {
 			throw std::runtime_error("failed to load texture image!");
 		}
@@ -107,16 +107,11 @@ namespace v {
 
 	
 		const uint32_t rez{ 10 };
-		const float uvScale{ 1.0f };
-		uint32_t dim;
-		uint32_t scale;
 
-		const float wx = 100.0f;
-		const float wy = 100.0f;
 
-		dim = heightmap.width;
+		const float wx = 1000.0f;
+		const float wy = 1000.0f;
 
-		scale = dim / rez;
 
 		//Generate vertices
 		const uint32_t vertexCount = rez * rez;
@@ -130,7 +125,7 @@ namespace v {
 					x * wx + wx / 2.0f - (float)rez * wx / 2.0f,
 					0.0f,
 					y * wy + wy / 2.0f - (float)rez * wy / 2.0f);
-				vertex.texCoord = glm::vec2((float)x / (rez - 1), (float)y / (rez - 1)) * uvScale;
+				vertex.texCoord = glm::vec2((float)x / (rez - 1), (float)y / (rez - 1));
 				tempVertices[index] = vertex;
 			}
 		}

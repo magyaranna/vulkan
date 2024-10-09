@@ -30,11 +30,11 @@ namespace v {
 		SwapChain& swapChain;
 
 		float znear = 0.1f;
-		float zfar = 2000.0f; //100.0f;
+		float zfar = 5000.0f; //2000.0f; //100.0f;
 
 		bool firstClick = true;
 		int width, height;
-		float speed = 1.0f;
+		float speed = 3.0f;
 		float sensitivity = 100.0f;
 
 		std::vector<std::unique_ptr<Buffer>> VP_uniform;

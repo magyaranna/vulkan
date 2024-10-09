@@ -16,7 +16,7 @@ namespace v {
         bool displayNormalmap = false;
         bool spin = false;
 
-        bool skybox = true;
+        bool skybox = false;
 
         float dFactor = 145.0f;
         float tessFactor = 7.5f;

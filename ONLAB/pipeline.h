@@ -53,13 +53,8 @@ namespace v {
 		Device& device;
 		VkPipeline pipeline;
 
-
-
 		void createGraphicsPipeline(const std::string& vert, const std::string& frag,  ConfigInfo& configInfo, const std::string& tesc, const std::string& tese);
-
-		VkShaderModule createShaderModule(const std::vector<char>& code);
-		static std::vector<char> readFile(const std::string& filename);
-		
+		void createComputePipeline();
 
 	public:
 		
@@ -68,6 +63,8 @@ namespace v {
 		Pipeline(const Pipeline&) = delete;
 		void operator=(const Pipeline&) = delete;
 
+		static VkShaderModule createShaderModule(Device& device, const std::vector<char>& code);
+		static std::vector<char> readFile(const std::string& filename);
 
 		static void defaultPipelineConfigInfo(ConfigInfo& configInfo);
 		void bind(VkCommandBuffer commandBuffer);

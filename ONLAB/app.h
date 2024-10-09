@@ -41,6 +41,9 @@
 #include "scene.h"
 #include "offscreen_render_system.h"
 
+#include "compute_render_system.h"
+#include "sky.h"
+
 namespace v {
 
 

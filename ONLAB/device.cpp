@@ -114,6 +114,7 @@ namespace v {
         }
         vkGetDeviceQueue(logicalDevice, indices.graphicsFamily.value(), 0, &graphicsQueue);
         vkGetDeviceQueue(logicalDevice, indices.presentFamily.value(), 0, &presentQueue);
+        vkGetDeviceQueue(logicalDevice, indices.computeFamily.value(), 0, &computeQueue);
     }
 
     void Device::createCommandPool() {
@@ -147,7 +148,7 @@ namespace v {
 
 
     QueueFamilyIndices Device::findQueueFamilies(VkPhysicalDevice device) {
-        QueueFamilyIndices indices;
+       // QueueFamilyIndices indices;
 
         uint32_t queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -168,6 +169,10 @@ namespace v {
             if (indices.isComplete()) {
                 break;
             }
+            if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+                indices.computeFamily = i;
+            }
+
 
             i++;
         }

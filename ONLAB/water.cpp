@@ -137,7 +137,7 @@ namespace v {
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 		VkAttachmentDescription depthAttachment{};
-		depthAttachment.format = Helper::findDepthFormat(device);
+		depthAttachment.format = VK_FORMAT_D24_UNORM_S8_UINT; //Helper::findDepthFormat(device);
 		depthAttachment.samples = device.getMSAASampleCountFlag();;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -209,7 +209,7 @@ namespace v {
 		Helper::createImage(device, 800, 600, 1, device.getMSAASampleCountFlag(), VK_FORMAT_B8G8R8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, fb.colorImage, fb.colorMem);
 		fb.colorView = Helper::createImageView(device, fb.colorImage, VK_FORMAT_B8G8R8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
-		VkFormat depthFormat = Helper::findDepthFormat(device);
+		VkFormat depthFormat = VK_FORMAT_D24_UNORM_S8_UINT; //Helper::findDepthFormat(device);
 		Helper::createImage(device, 800, 600, 1, device.getMSAASampleCountFlag(), depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, fb.depthImage, fb.depthMem);
 		fb.depthView = Helper::createImageView(device, fb.depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 

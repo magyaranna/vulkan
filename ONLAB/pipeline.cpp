@@ -40,8 +40,8 @@ namespace v {
         std::cout << vertShaderCode.size() << std::endl;
         std::cout << fragShaderCode.size() << std::endl;
 
-        VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-        VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+        VkShaderModule vertShaderModule = createShaderModule(device, vertShaderCode);
+        VkShaderModule fragShaderModule = createShaderModule(device, fragShaderCode);
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -67,8 +67,8 @@ namespace v {
             auto tescShaderCode = readFile(tesc);
             auto teseShaderCode = readFile(tese);
 
-            tescShaderModule = createShaderModule(tescShaderCode);
-            teseShaderModule = createShaderModule(teseShaderCode);
+            tescShaderModule = createShaderModule(device, tescShaderCode);
+            teseShaderModule = createShaderModule(device, teseShaderCode);
 
             VkPipelineShaderStageCreateInfo tescShaderStageInfo{};
             tescShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -218,11 +218,10 @@ namespace v {
         file.read(buffer.data(), fileSize);
         file.close();
 
-
         return buffer;
     }
 
-    VkShaderModule Pipeline::createShaderModule(const std::vector<char>& code) {
+    VkShaderModule Pipeline::createShaderModule(Device& device, const std::vector<char>& code) {
         VkShaderModuleCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
         createInfo.codeSize = code.size();

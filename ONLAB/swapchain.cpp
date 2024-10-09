@@ -28,6 +28,8 @@ namespace v {
             vkDestroySemaphore(device.getLogicalDevice(), renderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(device.getLogicalDevice(), imageAvailableSemaphores[i], nullptr);
             vkDestroyFence(device.getLogicalDevice(), inFlightFences[i], nullptr);
+            vkDestroySemaphore(device.getLogicalDevice(), computeFinishedSemaphores[i], nullptr);
+            vkDestroyFence(device.getLogicalDevice(), computeInFlightFences[i], nullptr);
         }
 
     }
@@ -148,11 +150,11 @@ namespace v {
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL; // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentDescription depthAttachment{};
-        depthAttachment.format = Helper::findDepthFormat(device);
+        depthAttachment.format = VK_FORMAT_D24_UNORM_S8_UINT; //Helper::findDepthFormat(device);
         depthAttachment.samples = device.getMSAASampleCountFlag();;
         depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -237,12 +239,13 @@ namespace v {
     }
 
 
-
-
     void SwapChain::createSyncObjects() {
         imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+        computeFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+        computeInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -258,6 +261,10 @@ namespace v {
 
                 throw std::runtime_error("failed to create synchronization objects for a frame!");
             }
+            if (vkCreateSemaphore(device.getLogicalDevice(), &semaphoreInfo, nullptr, &computeFinishedSemaphores[i]) != VK_SUCCESS ||
+                vkCreateFence(device.getLogicalDevice(), &fenceInfo, nullptr, &computeInFlightFences[i]) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create compute synchronization objects for a frame!");
+            }
         }
     }
 
@@ -269,10 +276,10 @@ namespace v {
     }
 
     void SwapChain::createDepthResources() {
-        VkFormat depthFormat = Helper::findDepthFormat(device);
+        VkFormat depthFormat = VK_FORMAT_D24_UNORM_S8_UINT;//Helper::findDepthFormat(device);
 
         Helper::createImage(device, swapChainExtent.width, swapChainExtent.height, 1, device.getMSAASampleCountFlag(), depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
-        depthImageView = Helper::createImageView(device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+        depthImageView = Helper::createImageView(device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 1);
     }
 
 
@@ -335,9 +342,9 @@ namespace v {
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        submitInfo.waitSemaphoreCount = 1;
+        VkSemaphore waitSemaphores[] = { computeFinishedSemaphores[currentFrame], imageAvailableSemaphores[currentFrame] };
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        submitInfo.waitSemaphoreCount = 2;
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
 
@@ -373,9 +380,18 @@ namespace v {
         return result;
     }
 
+    VkResult SwapChain::submitComputeCommandBuffer(const VkCommandBuffer* buffer) {
 
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = buffer;
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = &computeFinishedSemaphores[currentFrame];
 
-
-
+        if (vkQueueSubmit(device.getComputeQueue(), 1, &submitInfo, computeInFlightFences[currentFrame]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to submit compute command buffer!");
+        };
+    }
 
 }

@@ -93,9 +93,11 @@ namespace v {
         };
         
         int idx = 0;
+       
+        int scale = 3000.0f;
         for (int i = 0; i < 36; i++) {
             Vertex vertex{};
-            vertex.pos = glm::vec3(skyboxVertices[3 * i] * 500, skyboxVertices[3 * i + 1] * 500, skyboxVertices[3 * i +2]*500);
+            vertex.pos = glm::vec3(skyboxVertices[3 * i] * scale, skyboxVertices[3 * i + 1] * scale, skyboxVertices[3 * i +2]* scale);
             vertices.push_back(vertex);
             
         }

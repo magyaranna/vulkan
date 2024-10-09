@@ -66,9 +66,9 @@ layout(location = 0) out vec4 outColor;
 vec3 reflection;
 vec3 shading;
 float alpha = 30.0;
-float snow_height = 120.0;
-float grass_height = 12.0;
-float mix_zone = 12.0;
+float snow_height = 2000.0; //120.0;
+float grass_height = 60.0; //12.0;
+float mix_zone = 25.0;//12.0;
 
 void main(){
 
@@ -86,15 +86,15 @@ void main(){
         
         vec3 snow = texture(snowTexture, inUV*10).rgb;
         vec3 grass = texture(grassTexture, inUV*30).rgb;
-        vec3 sand = texture(sandTexture, inUV*10).rgb;
+        vec3 sand = texture(sandTexture, inUV*15).rgb;
         vec3 rock = texture(rockTexture, inUV*40).rgb;  
         float angleDiff = abs(dot(normal.xyz, vec3(0, 1, 0)));
-        float pureRock = 0.4;
-        float lerpRock = 0.6;
+        float pureRock = 0.5;
+        float lerpRock = 0.9;
         float coef = 1.0 - smoothstep(pureRock, lerpRock, angleDiff);
         grass = mix(grass, rock, coef);
         snow = mix(snow, rock, coef);
-        coef = smoothstep(0.90, 0.98, angleDiff);
+        coef = smoothstep(0.80, 0.98, angleDiff);
         grass = mix(grass, snow, coef);
 
         
@@ -120,10 +120,10 @@ void main(){
 
 	
 
-   outColor = vec4( color.rgb ,1.0 );
+    outColor = vec4( color.rgb ,1.0 );
     //outColor = vec4( normal ,1.0 );
 	//outColor = vec4( vec3(height, height, height) ,1.0 );
-    //outColor = vec4( 0.0, 0.0, 0.0 ,1.0 );
+  //  outColor = vec4( 0.0, 0.0, 0.0 ,1.0 );
 }
 
 

@@ -46,6 +46,12 @@
     <Filter Include="Source Files\render\skybox">
       <UniqueIdentifier>{5ea0b754-204e-419f-9487-82a64924d12c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\shaders\skyLUTs">
+      <UniqueIdentifier>{9389cc4d-596c-43d3-bc74-5418cfedeab6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders\water">
+      <UniqueIdentifier>{7852ea28-8019-41b8-8ff5-5004c9f93853}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp">
@@ -149,6 +155,12 @@
     </ClCompile>
     <ClCompile Include="offscreen_render_system.cpp">
       <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="compute_render_system.cpp">
+      <Filter>Source Files\render</Filter>
+    </ClCompile>
+    <ClCompile Include="sky.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -269,6 +281,12 @@
     <ClInclude Include="offscreen_render_system.h">
       <Filter>Source Files\render</Filter>
     </ClInclude>
+    <ClInclude Include="compute_render_system.h">
+      <Filter>Source Files\render</Filter>
+    </ClInclude>
+    <ClInclude Include="sky.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\scene.vert">
@@ -284,12 +302,6 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\normalmap.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\water.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="shaders\water.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="shaders\depthCascade.vert">
@@ -339,6 +351,21 @@
     </None>
     <None Include="shaders\terraindepth.tese">
       <Filter>Source Files\shaders\terrain</Filter>
+    </None>
+    <None Include="shaders\multiscatteringLUT.comp">
+      <Filter>Source Files\shaders\skyLUTs</Filter>
+    </None>
+    <None Include="shaders\transmittanceLUT.comp">
+      <Filter>Source Files\shaders\skyLUTs</Filter>
+    </None>
+    <None Include="shaders\skyviewLUT.comp">
+      <Filter>Source Files\shaders\skyLUTs</Filter>
+    </None>
+    <None Include="shaders\water.vert">
+      <Filter>Source Files\shaders\water</Filter>
+    </None>
+    <None Include="shaders\water.frag">
+      <Filter>Source Files\shaders\water</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
