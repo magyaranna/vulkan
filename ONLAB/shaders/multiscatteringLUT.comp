@@ -14,7 +14,7 @@ void main()
 {
 
     vec3 transmittance =  imageLoad(inputImage, ivec2(gl_GlobalInvocationID.xy)).rgb;
-   
+
     imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(transmittance, 1.0));
 
-}
+  }

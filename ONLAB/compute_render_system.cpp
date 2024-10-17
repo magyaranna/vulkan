@@ -72,32 +72,26 @@ namespace v {
         /*transmittance*/
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, transmittancePipeline);
 
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, transmittancePipelineLayout, 0, 1, &sky.inputImage.descriptorSets[currentFrame], 0, nullptr);
-        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, transmittancePipelineLayout, 1, 1, &sky.transmittanceLUT.descriptorSets[currentFrame], 0, nullptr);
+        //vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, transmittancePipelineLayout, 0, 1, &sky.inputImage.descriptorSets[currentFrame], 0, nullptr);
+        vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, transmittancePipelineLayout, 0, 1, &sky.transmittanceLUT.descriptorSets[currentFrame], 0, nullptr);
 
         vkCmdDispatch(cmd, sky.transmittanceLUT.width / 16, sky.transmittanceLUT.height / 16, 1);
+           
+        /*VkMemoryBarrier memoryBarrier = {};
+        memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+        memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-        /**/
-        VkImageMemoryBarrier imageMemoryBarrier = {};
-        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        
-        imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier.image = sky.transmittanceLUT.image;
-        imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         vkCmdPipelineBarrier(
             cmd,
             VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            0,   //??
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            0, 1,
+            &memoryBarrier,
             0, nullptr,
-            0, nullptr,
-            1, &imageMemoryBarrier);
-
+            0, nullptr
+        );*/
+      
 
         /*multiscattering*/
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, multiscatteringPipeline);
@@ -107,27 +101,16 @@ namespace v {
 
         vkCmdDispatch(cmd, sky.multiscatteringLUT.width/16, sky.multiscatteringLUT.height/16, 1);
 
-
-        
-        VkImageMemoryBarrier imageMemoryBarrier2 = {};
-        imageMemoryBarrier2.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        
-        imageMemoryBarrier2.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier2.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier2.image = sky.transmittanceLUT.image;
-        imageMemoryBarrier2.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        imageMemoryBarrier2.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        imageMemoryBarrier2.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        imageMemoryBarrier2.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        imageMemoryBarrier2.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        vkCmdPipelineBarrier(
+        /*vkCmdPipelineBarrier(
             cmd,
             VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            0,   //??
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            0, 1,
+            &memoryBarrier,
             0, nullptr,
-            0, nullptr,
-            1, &imageMemoryBarrier2);
+            0, nullptr
+        );*/
+       
 
         /*skyview*/
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, skyViewPipeline);
@@ -140,26 +123,15 @@ namespace v {
 
         vkCmdDispatch(cmd, sky.skyviewLUT.width / 16, sky.skyviewLUT.height / 16, 1);
 
-
-        
-        VkImageMemoryBarrier imageMemoryBarrier3 = {};
-        imageMemoryBarrier3.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        
-        imageMemoryBarrier3.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier3.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        imageMemoryBarrier3.image = sky.transmittanceLUT.image;
-        imageMemoryBarrier3.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        imageMemoryBarrier3.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        imageMemoryBarrier3.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        imageMemoryBarrier3.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        imageMemoryBarrier3.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        vkCmdPipelineBarrier(
+        /*vkCmdPipelineBarrier(
             cmd,
             VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-            0,   //??
+            0, 1,
+            &memoryBarrier,
             0, nullptr,
-            0, nullptr,
-            1, &imageMemoryBarrier3);
+            0, nullptr
+        );
+        */
     }
 }

@@ -4,36 +4,83 @@
 
 layout (local_size_x = 16, local_size_y = 16) in;
 
-layout (set = 0, binding = 0, rgba8) uniform image2D inputImage;
-layout (set = 1, binding = 0, rgba8) uniform image2D resultImage;
+layout (set = 0, binding = 0, rgba8) uniform image2D resultImage;
 
 
+vec3 rayleighScatteringCoefficient = vec3(5.802, 13.558, 33.1) * 0.001;
+float rayleighAbsorptioCoefficient = 0.0;
 
-vec3 getScatteringValues(vec3 worldPosition)
-{
-    //  rayleigh + mie + ozone
+float mieScatteringCoefficient = 3.996  * 0.001;
+float mieAbsorptionCoefficient = 4.4 * 0.001;
+
+float ozoneScatteringCoefficient = 0.0;
+vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, .085) * 0.001;
+
+
+vec3 getScatteringValues(vec3 pos) {
+    float height = (length(pos) - 6360.0f);
+
+    float rayleighDensity = exp(-height / 8.0);     //surusegeloszlas
+    float mieDensity = exp(-height / 1.2);
     
-    return vec3(0); 
+    vec3 rayleighScattering = rayleighScatteringCoefficient * rayleighDensity;  
+    float mieScattering = mieScatteringCoefficient * mieDensity;
+    float mieAbsorption = mieAbsorptionCoefficient * mieDensity;
+    vec3 ozoneAbsorption = ozoneAbsorptionCoefficient * max(0.0, 1.0 - abs(height-25.0)/15.0);
+    
+    return rayleighScattering + mieScattering + mieAbsorption + ozoneAbsorption;
 }
 
-vec3 integrateTransmittance(vec3 worldPosition, vec3 worldDirection)
+
+ //sphere: p^2 - r^2 = 0   origin = (0,0,0)   
+ //ray: s + d * t   
+float rayIntersectsSphere(vec3 s, vec3 d, float r)   
 {
-    
-    //integrationLength :  wordpos + t* wordldir --> atmosphere.top 
-    //step
+	float a = dot(d, d);
+	float b = 2.0 * dot(s,d);
+	float c = dot(s,s) - dot(r,r);
+	float Disc = b * b - 4.0*a*c;
+	if (Disc < 0.0 )
+	{
+		return -1.0;
+	}
+	float t1 = (-b - sqrt(max(0, Disc))) / (2.0*a);
+	float t2 = (-b + sqrt(max(0, Disc))) / (2.0*a);
+	if (t1 < 0.0 && t2 < 0.0)
+	{
+		return -1.0;
+	}
+	if (t1 < 0.0)
+	{
+		return max(0.0, t2);
+	}
+	else if (t2 < 0.0)
+	{
+		return max(0.0, t1);
+	}
+	return max(0.0, min(t1, t2));
+}
 
-    //for( step)
 
-        //pos
-        //getScatteringValues(pos);
+vec3 integrateTransmittance(vec3 worldPosition, vec3 worldDirection, uint sampleCount)
+{
 
-        // += scatteringvalue
-	return vec3(0);
+    float integrationLength = rayIntersectsSphere(worldPosition, worldDirection, 6460.0f);
+    float intStep = integrationLength / float(sampleCount);
+
+    vec3 res = vec3(0.0);
+    for(int i = 0; i < sampleCount; i++)
+    {
+        vec3 newPos = worldPosition + (i * intStep) * worldDirection;
+        vec3 atmosphereExtinction = getScatteringValues(newPos);
+        res += atmosphereExtinction * intStep;
+    }
+    return res;
 }
 
 
 
-vec2 UvToLutTransmittanceParams(vec2 atmosphereBoundaries, vec2 uv)   //https://github.com/sebh/UnrealEngineSkyAtmosphere
+vec2 GetRMuFromTransmittanceTextureUv(vec2 atmosphereBoundaries, vec2 uv)   //https://github.com/sebh/UnrealEngineSkyAtmosphere
 {
 	float x_mu = uv.x;
 	float x_r = uv.y;
@@ -45,7 +92,7 @@ vec2 UvToLutTransmittanceParams(vec2 atmosphereBoundaries, vec2 uv)   //https://
 	float d_min = atmosphereBoundaries.y - r;  
 	float d_max = rho + H;                      
 	float d = d_min + x_mu * (d_max - d_min);
-	float mu = d == 0.0 ? 1.0f : (H * H - rho * rho - d * d) / (2.0 * r * d);   //d= 0, ha v=1 u=0
+	float mu = d == 0.0 ? 1.0f : (H * H - rho * rho - d * d) / (2.0 * r * d);   
 	mu = clamp(mu, -1.0, 1.0);
 
     return vec2(r,mu);
@@ -62,20 +109,19 @@ void main()
         vec2 texDim = vec2(256.0f, 64.0f);
         vec2 uv = gl_GlobalInvocationID.xy / texDim;
 
-        vec2 params = UvToLutTransmittanceParams(atmosphereBoundaries, uv);
+        vec2 params = GetRMuFromTransmittanceTextureUv(atmosphereBoundaries, uv);
         float viewHeight = params.x;
         float viewZenithCosAngle = params.y;
     
+        vec3 worldPosition = vec3(0.0,viewHeight, 0.0  );
 
-        vec3 worldPosition = vec3(0.0,0.0, viewHeight );
-        vec3 worldDirection = vec3(0.0, sqrt(max(0, 1.0 - viewZenithCosAngle * viewZenithCosAngle)), viewZenithCosAngle); 
+        vec3 worldDirection = vec3( sqrt(max(0, 1.0 - viewZenithCosAngle * viewZenithCosAngle)), viewZenithCosAngle, 0.0 ); //ray dir in world coords
        
-	    //vec3 transmittance = exp(-integrateTransmittance(worldPosition, worldDirection));
-
-
-        vec3 rgb = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x , gl_GlobalInvocationID.y)).rgb;
+	    vec3 transmittance = exp(-integrateTransmittance(worldPosition, worldDirection,200));
 		
+        //vec3 rgb = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x , gl_GlobalInvocationID.y)).rgb;
+		//vec3 rgb = vec3(uv,0.0);
 
-        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4( rgb, 1.0));
+        imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4( transmittance, 1.0));
 
 }
