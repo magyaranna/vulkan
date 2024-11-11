@@ -2,10 +2,14 @@
 #version 450
 
 
-layout (local_size_x = 16, local_size_y = 16) in;
+layout (local_size_x = 8, local_size_y = 4) in; 
 
 layout (set = 0, binding = 0, rgba8) uniform image2D resultImage;
 
+float safeSqrt(float x)
+{
+    return sqrt(max(0, x));
+}
 
 vec3 rayleighScatteringCoefficient = vec3(5.802, 13.558, 33.1) * 0.001;
 float rayleighAbsorptioCoefficient = 0.0;
@@ -85,9 +89,9 @@ vec2 GetRMuFromTransmittanceTextureUv(vec2 atmosphereBoundaries, vec2 uv)   //ht
 	float x_mu = uv.x;
 	float x_r = uv.y;
 
-	float H = sqrt(atmosphereBoundaries.y * atmosphereBoundaries.y - atmosphereBoundaries.x * atmosphereBoundaries.x);
+	float H = safeSqrt(atmosphereBoundaries.y * atmosphereBoundaries.y - atmosphereBoundaries.x * atmosphereBoundaries.x);
 	float rho = H * x_r;
-	float r = sqrt(rho * rho + atmosphereBoundaries.x * atmosphereBoundaries.x);
+	float r = safeSqrt(rho * rho + atmosphereBoundaries.x * atmosphereBoundaries.x);
 
 	float d_min = atmosphereBoundaries.y - r;  
 	float d_max = rho + H;                      

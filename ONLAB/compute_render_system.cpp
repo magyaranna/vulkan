@@ -75,7 +75,7 @@ namespace v {
         //vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, transmittancePipelineLayout, 0, 1, &sky.inputImage.descriptorSets[currentFrame], 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, transmittancePipelineLayout, 0, 1, &sky.transmittanceLUT.descriptorSets[currentFrame], 0, nullptr);
 
-        vkCmdDispatch(cmd, sky.transmittanceLUT.width / 16, sky.transmittanceLUT.height / 16, 1);
+        vkCmdDispatch(cmd, sky.transmittanceLUT.width / 8, sky.transmittanceLUT.height / 4, 1);
            
         /*VkMemoryBarrier memoryBarrier = {};
         memoryBarrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
@@ -99,7 +99,8 @@ namespace v {
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, multiscatteringPipelineLayout, 0, 1, &sky.transmittanceLUT.descriptorSets[currentFrame], 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, multiscatteringPipelineLayout, 1, 1, &sky.multiscatteringLUT.descriptorSets[currentFrame], 0, nullptr);
 
-        vkCmdDispatch(cmd, sky.multiscatteringLUT.width/16, sky.multiscatteringLUT.height/16, 1);
+        vkCmdDispatch(cmd, sky.multiscatteringLUT.width/8, sky.multiscatteringLUT.height/4, 1);
+
 
         /*vkCmdPipelineBarrier(
             cmd,
@@ -121,7 +122,7 @@ namespace v {
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, skyViewPipelineLayout, 1, 1, &sky.multiscatteringLUT.descriptorSets[currentFrame], 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, skyViewPipelineLayout, 2, 1, &sky.skyviewLUT.descriptorSets[currentFrame], 0, nullptr);
 
-        vkCmdDispatch(cmd, sky.skyviewLUT.width / 16, sky.skyviewLUT.height / 16, 1);
+        vkCmdDispatch(cmd, sky.skyviewLUT.width / 8, sky.skyviewLUT.height / 4, 1);
 
         /*vkCmdPipelineBarrier(
             cmd,

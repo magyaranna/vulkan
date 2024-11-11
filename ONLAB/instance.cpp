@@ -46,7 +46,7 @@ namespace v {
             createInfo.ppEnabledLayerNames = validationLayers.data();
 
             populateDebugMessengerCreateInfo(debugCreateInfo);
-            createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
+             createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
         }
         else {
             createInfo.enabledLayerCount = 0;
@@ -74,7 +74,7 @@ namespace v {
     void Instance::createSurface() {
         window.createWindowSurface(instance, &surface);
     }
- 
+
 
     bool Instance::checkValidationLayerSupport() {
         uint32_t layerCount;

@@ -7,8 +7,8 @@ namespace v {
 	Sky::Sky(Device& device, DescriptorSetLayout& layout, DescriptorSetLayout& posComputeLayout, DescriptorPool& pool) : device(device) {
 		loadInputImage(layout, pool);
 		prepareStorageImage(transmittanceLUT, layout, pool, glm::vec2(256, 64));
-		prepareStorageImage(multiscatteringLUT, layout, pool, glm::vec2(256, 64)); //glm::vec2(32, 32));
-		prepareStorageImage(skyviewLUT, layout, pool, glm::vec2(256, 64)); //glm::vec2(192, 128));
+		prepareStorageImage(multiscatteringLUT, layout, pool, glm::vec2(32, 32)); //glm::vec2(32, 32));
+		prepareStorageImage(skyviewLUT, layout, pool, glm::vec2(32, 32)); //glm::vec2(192, 128));
 		createPostComputeDescriptorSets(posComputeLayout, pool);
 	}
 		
@@ -97,7 +97,7 @@ namespace v {
 		samplerInfo.magFilter = VK_FILTER_LINEAR;
 		samplerInfo.minFilter = VK_FILTER_LINEAR;
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		samplerInfo.addressModeV = samplerInfo.addressModeU;
 		samplerInfo.addressModeW = samplerInfo.addressModeU;
 		samplerInfo.mipLodBias = 0.0f;

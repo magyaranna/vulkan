@@ -1,20 +1,241 @@
 #version 450
+#extension GL_EXT_debug_printf : enable
+#extension GL_EXT_spirv_intrinsics : enable
 
-layout (local_size_x = 16, local_size_y = 16) in;
+layout (local_size_x = 8, local_size_y = 4) in;
 
 layout (set = 0, binding = 0, rgba8) uniform readonly image2D inputImage;  //transmittanceLUT
 layout (set = 1, binding = 0, rgba8) uniform image2D resultImage;
 
+//https://sebh.github.io/publications/egsr2020.pdf
 
-vec2 multiscatteringTexDim =  vec2(32.0f, 32.0f);
-vec2 transmittanceTexDim = vec2(256.0f, 64.0f);
+const vec2 transmittanceTexDim = vec2(256.0f, 64.0f);
+
+const float PI = 3.1415;
+
+const float atmosphereBottomR = 6360.0f;
+const float atmosphereTopR = 6460.0f;
+const vec3 groundAlbedo = vec3(0.3);
+
+const float phasefunc = 1.0 / (4.0 * PI);
+
+float safeSqrt(float x)
+{
+    return sqrt(max(0, x));
+}
+float safeacos(const float x) {
+    return acos(clamp(x, -1.0, 1.0));
+}
+
+struct MultiScattResult
+{
+    vec3 L2;
+    vec3 fms;
+};
+
+struct ScattValues{
+    vec3 rayleighScattering;
+    float mieScattering;
+    vec3 extinction;
+};
+
+vec3 rayleighScatteringCoefficient = vec3(5.802, 13.558, 33.1) * 0.001;
+float rayleighAbsorptioCoefficient = 0.0;
+
+float mieScatteringCoefficient = 3.996  * 0.001;
+float mieAbsorptionCoefficient = 4.4 * 0.001;
+
+float ozoneScatteringCoefficient = 0.0;
+vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, .085) * 0.001;
+
+
+
+
+ //sphere: p^2 - r^2 = 0   origin = (0,0,0)   
+ //ray: s + d * t   
+float rayIntersectsSphere(vec3 s, vec3 d, float r)   
+{
+	float a = dot(d, d);
+	float b = 2.0 * dot(s,d);
+	float c = dot(s,s) - dot(r,r);
+	float Disc = b * b - 4.0*a*c;
+	if (Disc < 0.0 )
+	{
+		return -1.0;
+	}
+	float t1 = (-b - sqrt(max(0, Disc))) / (2.0*a);
+	float t2 = (-b + sqrt(max(0, Disc))) / (2.0*a);
+	if (t1 < 0.0 && t2 < 0.0)
+	{
+		return -1.0;
+	}
+	if (t1 < 0.0)
+	{
+		return max(0.0, t2);
+	}
+	else if (t2 < 0.0)
+	{
+		return max(0.0, t1);
+	}
+	return max(0.0, min(t1, t2));
+}
+
+
+//https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html#rendering_sky
+float GetTextureCoordFromUnitRange(float x, float texture_size) {
+  return 0.5 / texture_size + x * (1.0 - 1.0 / texture_size);
+}
+float GetUnitRangeFromTextureCoord(float u, float texture_size) {
+  return (u - 0.5 / texture_size) / (1.0 - 1.0 / texture_size);
+}
+ivec2 GetUvFromRMu(float r, float mu)
+{
+    // Distance to top atmosphere boundary for a horizontal ray at ground level.
+	float H = safeSqrt(atmosphereTopR * atmosphereTopR - atmosphereBottomR * atmosphereBottomR);
+    // Distance to the horizon.
+	float rho = safeSqrt(r * r - atmosphereBottomR * atmosphereBottomR);
+	
+    // Distance to the top atmosphere boundary for the ray (r,mu), and its minimum
+    // and maximum values over all mu - obtained for (r,1) and (r,mu_horizon).
+	float discriminant = r * r * (mu * mu - 1.0) + atmosphereTopR * atmosphereTopR;
+	float d = max(0.0, (-r * mu + safeSqrt(discriminant)));
+
+	float d_min = atmosphereTopR - r;
+	float d_max = rho + H;
+	float x_mu = (d - d_min) / (d_max - d_min);
+	float x_r = rho / H;
+    vec2 uv = vec2(x_mu, x_r);
+   
+	return ivec2(uv * transmittanceTexDim);  
+    /*return vec2(GetTextureCoordFromUnitRange(x_mu, transmittanceTexDim.x),
+              GetTextureCoordFromUnitRange(x_r, transmittanceTexDim.y));*/
+
+}
+
+
+vec3 getDir(float theta, float phi) {    //y -> up
+     float x = sin(phi) * sin(theta);
+     float y = cos(phi);
+     float z = sin(phi) * cos(theta);
+     return vec3(x,y,z);
+}
+
+ScattValues getScatteringValues(vec3 pos){
+    ScattValues res;
+    float height = (length(pos) - 6360.0f);
+
+    float rayleighDensity = exp(-height / 8.0);     //surusegeloszlas
+    float mieDensity = exp(-height / 1.2);
+    
+    res.rayleighScattering = rayleighScatteringCoefficient * rayleighDensity;  
+    res.mieScattering = mieScatteringCoefficient * mieDensity;
+    float mieAbsorption = mieAbsorptionCoefficient * mieDensity;
+    vec3 ozoneAbsorption = ozoneAbsorptionCoefficient * max(0.0, 1.0 - abs(height-25.0)/15.0);
+    
+    res.extinction = res.rayleighScattering + res.mieScattering + mieAbsorption + ozoneAbsorption;
+    return res;
+}
+
+
+
+
+MultiScattResult getMultipleScattering(vec3 worldPosition, vec3 sunDirection)
+{
+
+    int sqrtSamples = 10;
+    float sampleCount = 20;
+
+    MultiScattResult result = MultiScattResult(vec3(0.0), vec3(0.0));
+
+    float invSamples = 1.0/float(sqrtSamples*sqrtSamples);
+    for (int i = 0; i < sqrtSamples; i++) {
+        for (int j = 0; j < sqrtSamples; j++) {
+            
+            float theta = PI * (float(i) + 0.5) / float(sqrtSamples);
+            float phi = safeacos(1.0 - 2.0*(float(j) + 0.5) / float(sqrtSamples)); 
+            vec3 rayDir = getDir(theta, phi);
+
+            float groundDist = rayIntersectsSphere( worldPosition, rayDir, atmosphereBottomR);
+            float atmosphereDist = rayIntersectsSphere( worldPosition, rayDir, atmosphereTopR);
+    
+            float integrationLength;
+            integrationLength = atmosphereDist;
+            if (groundDist > 0.0) {
+                integrationLength = groundDist;
+            }
+
+            float dt = integrationLength / float(sampleCount);
+            vec3 L = vec3(0.0), Lf = vec3(0.0), T_sum = vec3(1.0);
+
+            for(int i = 0; i < sampleCount; i++)
+            {
+                vec3 newPos = worldPosition + (i * dt) * rayDir;
+
+                
+                ScattValues scattValues = getScatteringValues(newPos);
+                vec3 scattering = scattValues.rayleighScattering + scattValues.mieScattering;
+                vec3 extinction = max( scattValues.extinction , 0.0000001) ;
+
+                vec3 transmittance = exp(-scattValues.extinction * dt);   
+                
+                //https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/s2016-pbs-frostbite-sky-clouds-new.pdf
+                vec3 LfIntegral = (scattering - scattering * transmittance) / extinction;    //Energy-conserving analytical integration
+                Lf += T_sum * LfIntegral ;
+
+                
+                vec3 up = normalize(newPos);
+                float r = length(newPos);    // ???
+                float mu = dot(sunDirection, up); 
+                ivec2 uv = GetUvFromRMu(r, mu);
+  
+                vec3 transmittanceToSun = vec3(imageLoad(inputImage, uv).rgb);
+               
+                vec3 sunLight = transmittanceToSun * scattering * phasefunc;
+                
+                vec3 scatteringIntegral = (sunLight - sunLight * transmittance) / extinction;
+                L += T_sum * scatteringIntegral;
+
+
+
+                T_sum *= transmittance;
+            }
+
+            //if groundDist>0  ...
+                   //L += T_sum*groundAlbedo*transmittancetoS(hitpos);
+                
+
+            result.fms += Lf /float(sqrtSamples*sqrtSamples) ;  
+            result.L2 += L /float(sqrtSamples*sqrtSamples);
+        }
+    }
+    return result;
+}
+
 
 
 void main()
 {
 
-    vec3 transmittance =  imageLoad(inputImage, ivec2(gl_GlobalInvocationID.xy)).rgb;
+    vec2 texDim =  vec2(32.0f, 32.0f);
+    vec2 uv = (gl_GlobalInvocationID.xy + vec2(0.5, 0.5))/ texDim;
+    //uv = vec2(GetUnitRangeFromTextureCoord(uv.x, 32.0f), GetUnitRangeFromTextureCoord(uv.y, 32.0f));
+    
+    float sunCosZenithAngle = (uv.x * 2.0 - 1.0) * -1.0;
+          
+    vec3 sunDirection = normalize(vec3(safeSqrt(1.0 - sunCosZenithAngle * sunCosZenithAngle),sunCosZenithAngle,0.0 ));
+    
+    float viewHeight = uv.y * ( atmosphereTopR - atmosphereBottomR) + atmosphereBottomR;
 
-    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(transmittance, 1.0));
+    vec3 worldPosition = vec3(0.0,viewHeight, 0.0);
 
-  }
+    MultiScattResult result = getMultipleScattering(worldPosition, sunDirection);
+
+
+    const vec3 Fms = 1.0  / (1.0 - result.fms);
+    vec3 psi = result.L2 * Fms;
+
+
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(psi, 1.0));
+
+
+}
