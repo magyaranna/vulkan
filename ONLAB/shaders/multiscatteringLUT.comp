@@ -180,7 +180,7 @@ MultiScattResult getMultipleScattering(vec3 worldPosition, vec3 sunDirection)
                 
                 //https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/s2016-pbs-frostbite-sky-clouds-new.pdf
                 vec3 LfIntegral = (scattering - scattering * transmittance) / extinction;    //Energy-conserving analytical integration
-                Lf += T_sum * LfIntegral ;
+                Lf +=  LfIntegral * phasefunc ;
 
                 
                 vec3 up = normalize(newPos);

@@ -4,6 +4,7 @@
 #include "device.h"
 #include "swapchain.h"
 #include "light.h"
+#include "camera.h"
 
 namespace v {
 
@@ -37,11 +38,15 @@ namespace v {
 
         int clicked = 0;
 
+        float sunPhiAngle = 90.0f;
+        float sunThetaAngle = 90.0f;
+
+
         Gui(Window& window, Device& device, SwapChain& swapchain, VkDescriptorPool pool);
         ~Gui();
 
         bool isHovered();
-        void updateGui(Light& light);
+        void updateGui(Light& light, Camera& camera);
         void renderGui(VkCommandBuffer cmd);
 
 

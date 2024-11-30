@@ -203,7 +203,7 @@ namespace v {
                 Inputs(window.getWindow());
             }
             glfwPollEvents();
-            gui->updateGui(*light.get());
+            gui->updateGui(*light.get(), *camera.get());
 
 
 

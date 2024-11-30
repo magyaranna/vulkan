@@ -51,7 +51,7 @@ namespace v {
     }
 
 
-    void Gui::updateGui(Light& light) {
+    void Gui::updateGui(Light& light, Camera& camera) {
        
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -69,6 +69,8 @@ namespace v {
         }
         ImGui::PopStyleColor(1);
 
+        ImGui::Text("CamPos: (%.2f, %.2f, %.2f)", camera.getPosition().x, camera.getPosition().y, camera.getPosition().z);
+
         ImGui::SeparatorText("");
        
         ImGui::Checkbox("display normalmap", &displayNormalmap);
@@ -84,6 +86,10 @@ namespace v {
         ImGui::Checkbox("wireframe", &wireframe);
 
         ImGui::SeparatorText("");
+
+        ImGui::SliderFloat("Sun Altitude Angle", &sunThetaAngle, 0.0, 180.0);
+        ImGui::SliderFloat("Sun Azimuth Angle", &sunPhiAngle, 0.0, 360.0);
+
 
 
  

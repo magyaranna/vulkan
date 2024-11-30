@@ -7,8 +7,8 @@ namespace v {
 	Sky::Sky(Device& device, DescriptorSetLayout& layout, DescriptorSetLayout& posComputeLayout, DescriptorPool& pool) : device(device) {
 		loadInputImage(layout, pool);
 		prepareStorageImage(transmittanceLUT, layout, pool, glm::vec2(256, 64));
-		prepareStorageImage(multiscatteringLUT, layout, pool, glm::vec2(32, 32)); //glm::vec2(32, 32));
-		prepareStorageImage(skyviewLUT, layout, pool, glm::vec2(32, 32)); //glm::vec2(192, 128));
+		prepareStorageImage(multiscatteringLUT, layout, pool, glm::vec2(32, 32)); 
+		prepareStorageImage(skyviewLUT, layout, pool, glm::vec2(192, 128)); 
 		createPostComputeDescriptorSets(posComputeLayout, pool);
 	}
 		

@@ -6,9 +6,9 @@ namespace v {
 
 	ComputeRenderSystem::ComputeRenderSystem(Device& device, PipelineManager& pipelineManager, std::vector<VkDescriptorSetLayout> setLayouts) : device(device), pipelineManager (pipelineManager) {
 
-        createPipelineLayouts({ setLayouts[0], setLayouts[1] }, transmittancePipelineLayout);
-        createPipelineLayouts({ setLayouts[0], setLayouts[1]}, multiscatteringPipelineLayout);
-        createPipelineLayouts(setLayouts, skyViewPipelineLayout);
+        createPipelineLayouts({ setLayouts[0], setLayouts[1] }, transmittancePipelineLayout, false);
+        createPipelineLayouts({ setLayouts[0], setLayouts[1]}, multiscatteringPipelineLayout, false);
+        createPipelineLayouts(setLayouts, skyViewPipelineLayout, true);
 
         createPipeline(transmittancePipeline, transmittancePipelineLayout, "shaders/transmittanceComp.spv");
         createPipeline(multiscatteringPipeline, multiscatteringPipelineLayout, "shaders/multiscatteringComp.spv");
@@ -25,10 +25,21 @@ namespace v {
         vkDestroyPipeline(device.getLogicalDevice(), skyViewPipeline, nullptr);
 	}
 
-	void ComputeRenderSystem::createPipelineLayouts(std::vector<VkDescriptorSetLayout> setLayouts, VkPipelineLayout& pipelineLayout) {
+	void ComputeRenderSystem::createPipelineLayouts(std::vector<VkDescriptorSetLayout> setLayouts, VkPipelineLayout& pipelineLayout, bool skyview) {
         
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+
+        if (skyview) {
+
+            VkPushConstantRange pushConstantRange = {};
+            pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+            pushConstantRange.offset = 0;
+            pushConstantRange.size = sizeof(pushConstantCompute);
+
+            pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+            pipelineLayoutInfo.pushConstantRangeCount = 1;
+        }
 
         std::vector<VkDescriptorSetLayout> layouts = setLayouts;  
         pipelineLayoutInfo.setLayoutCount = layouts.size();
@@ -116,7 +127,21 @@ namespace v {
         /*skyview*/
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, skyViewPipeline);
 
-       // std::array<glm::vec3, 1> constant = { glm::vec3{0.5f} };
+        glm::vec3 sunDirection = glm::vec3(
+            glm::cos(glm::radians(gui.sunPhiAngle)) * glm::cos(glm::radians(gui.sunThetaAngle)),
+            glm::sin(glm::radians(gui.sunThetaAngle)),
+            glm::sin(glm::radians(gui.sunPhiAngle)) * glm::cos(glm::radians(gui.sunThetaAngle))
+  
+
+        );
+
+        std::array<pushConstantCompute, 1> constant = { {camera.getPosition(),0.5, sunDirection} };
+
+        // std::array<glm::vec3, 1> constant = { glm::vec3{0.5f} };
+
+
+        vkCmdPushConstants(cmd, skyViewPipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(pushConstantCompute), constant.data());
+
 
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, skyViewPipelineLayout, 0, 1, &sky.transmittanceLUT.descriptorSets[currentFrame], 0, nullptr);
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, skyViewPipelineLayout, 1, 1, &sky.multiscatteringLUT.descriptorSets[currentFrame], 0, nullptr);
