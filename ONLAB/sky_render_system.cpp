@@ -23,7 +23,7 @@ namespace v {
         VkPushConstantRange pushConstantRange = {};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         pushConstantRange.offset = 0;
-        pushConstantRange.size = sizeof(pushConstantSky);
+        pushConstantRange.size = sizeof(v::ComputeRenderSystem::pushConstantCompute);
 
         ranges.push_back(pushConstantRange);
 
@@ -94,10 +94,18 @@ namespace v {
         vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
 
-        std::array<pushConstantSky, 1> constant = { camera.getPosition()};
+        glm::vec3 sunDirection = glm::vec3(
+            glm::cos(glm::radians(gui.sunPhiAngle)) * glm::cos(glm::radians(gui.sunThetaAngle)),
+            glm::sin(glm::radians(gui.sunThetaAngle)),
+            glm::sin(glm::radians(gui.sunPhiAngle)) * glm::cos(glm::radians(gui.sunThetaAngle))
 
 
-        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstantSky), constant.data());
+        );
+
+        std::array<v::ComputeRenderSystem::pushConstantCompute, 1> constant = { {camera.getPosition(),0.5, sunDirection} };
+
+
+        vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(v::ComputeRenderSystem::pushConstantCompute), constant.data());
 
        
         vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &sky.postComputeDescriptorSets[currentFrame], 0, nullptr);

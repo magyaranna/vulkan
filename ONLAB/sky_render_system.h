@@ -28,10 +28,5 @@ namespace v {
 		void drawSky(VkCommandBuffer& cmd, int currentFrame, Sky& sky, Gui& gui, Camera& camera);
 
 
-		struct pushConstantSky {
-			glm::vec3 camera;
-
-		};
-
 	};
 }
