@@ -15,7 +15,9 @@ namespace v {
 		PipelineManager& manager;
 
 		std::unique_ptr<Pipeline> pipeline;
+		std::unique_ptr<Pipeline> pipelineForWater;
 		VkPipelineLayout pipelineLayout;
+		VkPipelineLayout pipelineLayoutForWater;
 
 		void createPipelineLayout(std::vector<VkDescriptorSetLayout> setLayouts);
 		void createPipeline(VkRenderPass renderPass);
@@ -25,7 +27,7 @@ namespace v {
 		SkyRenderSystem(Device& device, PipelineManager& manager, VkRenderPass renderPass, std::vector<VkDescriptorSetLayout> setLayouts);
 		~SkyRenderSystem();
 
-		void drawSky(VkCommandBuffer& cmd, int currentFrame, Sky& sky, Gui& gui, Camera& camera);
+		void drawSky(VkCommandBuffer& cmd, int currentFrame, Sky& sky, Gui& gui, Camera& camera, bool water, glm::vec4 clipPlane);
 
 
 	};

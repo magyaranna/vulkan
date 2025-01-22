@@ -57,7 +57,7 @@ namespace v {
 
 	void Water::createTextureDescriptorSet(DescriptorSetLayout& layout, DescriptorPool& pool) {
 
-		std::string texture_path = "textures/dudvmap.png";
+		std::string texture_path = "textures/dudv.jpg";
 		int texWidth, texHeight, texChannels;
 		stbi_uc* pixels = stbi_load(texture_path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		int mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;

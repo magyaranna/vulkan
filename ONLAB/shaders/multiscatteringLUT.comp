@@ -42,11 +42,11 @@ struct ScattValues{
 vec3 rayleighScatteringCoefficient = vec3(5.802, 13.558, 33.1) * 0.001;
 float rayleighAbsorptioCoefficient = 0.0;
 
-float mieScatteringCoefficient = 3.996  * 0.001;
+float mieScatteringCoefficient = 3.996 * 0.001;
 float mieAbsorptionCoefficient = 4.4 * 0.001;
 
 float ozoneScatteringCoefficient = 0.0;
-vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, .085) * 0.001;
+vec3 ozoneAbsorptionCoefficient = vec3(0.650, 1.881, 0.085) * 0.001;
 
 
 
@@ -142,8 +142,8 @@ ScattValues getScatteringValues(vec3 pos){
 MultiScattResult getMultipleScattering(vec3 worldPosition, vec3 sunDirection)
 {
 
-    int sqrtSamples = 10;
-    float sampleCount = 20;
+    int sqrtSamples = 15;
+    float sampleCount = 40;
 
     MultiScattResult result = MultiScattResult(vec3(0.0), vec3(0.0));
 
@@ -197,11 +197,27 @@ MultiScattResult getMultipleScattering(vec3 worldPosition, vec3 sunDirection)
 
 
 
-                T_sum *= transmittance;
+                T_sum *= transmittance ;
             }
 
             //if groundDist>0  ...
                    //L += T_sum*groundAlbedo*transmittancetoS(hitpos);
+            if (groundDist > 0.0) {
+                vec3 hitPos = worldPosition + atmosphereBottomR*rayDir;
+                if (dot(worldPosition, sunDirection) > 0.0) {
+                    hitPos = normalize(hitPos)*atmosphereBottomR;
+
+                    vec3 up = normalize(hitPos);
+                    float r = length(hitPos);    // ???
+                    float mu = dot(sunDirection, up); 
+                    ivec2 uv = GetUvFromRMu(r, mu);
+  
+                    vec3 transmittanceToSun = vec3(imageLoad(inputImage, uv).rgb);
+               
+
+                     L += T_sum*groundAlbedo*transmittanceToSun * 0.5;
+                }
+            }
                 
 
             result.fms += Lf /float(sqrtSamples*sqrtSamples) ;  
@@ -235,7 +251,7 @@ void main()
     vec3 psi = result.L2 * Fms;
 
 
-    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(psi, 1.0));
+    imageStore(resultImage, ivec2(gl_GlobalInvocationID.xy), vec4(psi , 1.0));
 
-
+    
 }

@@ -67,7 +67,7 @@ vec3 reflection;
 vec3 shading;
 float alpha = 30.0;
 float snow_height = 2000.0; //120.0;
-float grass_height = 60.0; //12.0;
+float grass_height = 40.0; //12.0;
 float mix_zone = 25.0;//12.0;
 
 void main(){
@@ -95,7 +95,7 @@ void main(){
         grass = mix(grass, rock, coef);
         snow = mix(snow, rock, coef);
         coef = smoothstep(0.80, 0.98, angleDiff);
-        grass = mix(grass, snow, coef);
+       // grass = mix(grass, snow, coef);
 
         
         if (height > snow_height + mix_zone){

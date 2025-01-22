@@ -29,7 +29,7 @@ namespace v {
 
 		Device& device;
 
-		glm::vec3 offset = glm::vec3(0.0f);
+		glm::vec3 offset = glm::vec3(0.0f, -10.0f, 0.0f);
 		glm::vec3 scale;
 
 		std::vector<Vertex> vertices;

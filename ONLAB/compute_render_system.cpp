@@ -135,7 +135,7 @@ namespace v {
 
         );
 
-        std::array<pushConstantCompute, 1> constant = { {camera.getPosition(),0.5, sunDirection} };
+        std::array<pushConstantCompute, 1> constant = { {camera.getPosition(),0.5, sunDirection, 0.5} };
 
         // std::array<glm::vec3, 1> constant = { glm::vec3{0.5f} };
 

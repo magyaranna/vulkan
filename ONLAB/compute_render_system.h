@@ -36,9 +36,10 @@ namespace v {
 		void recordComputeCommandBuffers(VkCommandBuffer& cmd, int currentFrame, Sky& sky, Gui& gui, Camera& camera);
 
 		struct pushConstantCompute {
-			glm::vec3 camera;
+			glm::vec3 camera;    
 			float a;
 			glm::vec3 sundir;
+			float padding;  
 		};
 	
 	};

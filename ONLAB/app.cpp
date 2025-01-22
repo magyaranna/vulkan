@@ -123,6 +123,11 @@ namespace v {
         std::vector<VkDescriptorSet> vcsmDescriptorSets = ShadowMap::createDescriptorSets(device, 20, varianceCascadeShadowMap, blur_descriptorLayouts->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
         std::vector<VkDescriptorSet> ecsmDescriptorSets = ShadowMap::createDescriptorSets(device, 20, expCascadeShadowMap, blur_descriptorLayouts->getDescriptorSetLayout(), descriptorPool.getDescriptorPool());
 
+        /*storageImage*/
+        Binding storageBinding = Binding().addBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_ALL);
+        std::unique_ptr<DescriptorSetLayout> storageLayout = std::make_unique<DescriptorSetLayout>(device, storageBinding.bindings);
+
+        Sky sky{ device , *storageLayout, *texture_descriptorLayout, descriptorPool };
 
         descriptorLayouts.push_back(camera_descriptorLayout->getDescriptorSetLayout());   //VP
         descriptorLayouts.push_back(texture_descriptorLayout->getDescriptorSetLayout());    //texture
@@ -170,16 +175,12 @@ namespace v {
             {descriptorLayouts[1],descriptorLayouts[0], descriptorLayouts[3], descriptorLayouts[1]}, renderer.depthRenderPass };
         */
 
-        Binding storageBinding = Binding().addBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);
-        std::unique_ptr<DescriptorSetLayout> storageLayout = std::make_unique<DescriptorSetLayout>(device, storageBinding.bindings);
-        
-        Sky sky{ device , *storageLayout, *texture_descriptorLayout, descriptorPool };
 
         ComputeRenderSystem computeRenderSystem{ device, pipelineManager, 
             {storageLayout->getDescriptorSetLayout(), storageLayout->getDescriptorSetLayout() , storageLayout->getDescriptorSetLayout()}
         };
 
-        SkyRenderSystem skyRenderSystem{ device, pipelineManager, renderer.swapchain->getRenderPass() , {descriptorLayouts[1], descriptorLayouts[0]} };
+        SkyRenderSystem skyRenderSystem{ device, pipelineManager, renderer.swapchain->getRenderPass() , {descriptorLayouts[1], descriptorLayouts[0], storageLayout->getDescriptorSetLayout()}};
        
 
         float waterDist = camera->pos.y - water->height;
@@ -249,15 +250,17 @@ namespace v {
 
                 /*water*/
                 renderer.beginRenderPass(commandBuffer, water->getReflection().frameBuffer, water->getRenderPass());
-                    skyboxRenderSystem.drawSkybox(commandBuffer, frameIndex, *skybox, *reflectionCamera, glm::vec4(0, 1, 0, -water->height));
-                    terrainRenderSystem.renderTerrain(commandBuffer, frameIndex, renderInfo, *reflectionCamera, glm::vec4(0, 1, 0, -water->height));
+                    //skyboxRenderSystem.drawSkybox(commandBuffer, frameIndex, *skybox, *reflectionCamera, glm::vec4(0, 1, 0, -water->height));
+                    //terrainRenderSystem.renderTerrain(commandBuffer, frameIndex, renderInfo, *reflectionCamera, glm::vec4(0, 1, 0, -water->height));
                     //renderSystem.renderGameObjects(commandBuffer, frameIndex, renderInfo, *reflectionCamera, glm::vec4(0, 1, 0, -water->height));
+                    skyRenderSystem.drawSky(commandBuffer, frameIndex, sky, *gui,*reflectionCamera, true, glm::vec4(0, 1, 0, -water->height));
                 renderer.endRenderPass(commandBuffer);
 
                 renderer.beginRenderPass(commandBuffer, water->getRefraction().frameBuffer, water->getRenderPass());
-                    skyboxRenderSystem.drawSkybox(commandBuffer, frameIndex, *skybox, *camera, glm::vec4(0, -1, 0, water->height));
-                    terrainRenderSystem.renderTerrain(commandBuffer, frameIndex, renderInfo, *camera, glm::vec4(0, -1, 0, water->height));
+                    //skyboxRenderSystem.drawSkybox(commandBuffer, frameIndex, *skybox, *camera, glm::vec4(0, -1, 0, water->height));
+                    //terrainRenderSystem.renderTerrain(commandBuffer, frameIndex, renderInfo, *camera, glm::vec4(0, -1, 0, water->height));
                    // renderSystem.renderGameObjects(commandBuffer, frameIndex, renderInfo, *camera, glm::vec4(0, -1, 0, water->height));
+                    skyRenderSystem.drawSky(commandBuffer, frameIndex, sky, *gui, *camera,  true, glm::vec4(0, -1, 0, water->height));
                 renderer.endRenderPass(commandBuffer);
                 /******/
 
@@ -276,7 +279,7 @@ namespace v {
                     terrainRenderSystem.renderTerrain(commandBuffer, frameIndex, renderInfo, *camera);
                     waterRenderSystem.renderWater(commandBuffer, frameIndex, renderInfo, *camera, moveFactor);
 
-                    if(!gui->skybox) skyRenderSystem.drawSky(commandBuffer, frameIndex, sky, *gui, *camera);
+                    if(!gui->skybox) skyRenderSystem.drawSky(commandBuffer, frameIndex, sky, *gui, *camera, false, glm::vec4(0, 0, 0, 0));
 
                    // renderSystem.renderGameObjects(commandBuffer, frameIndex, renderInfo, *camera);
                     gui->renderGui(commandBuffer);

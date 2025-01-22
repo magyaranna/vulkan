@@ -54,7 +54,7 @@ void main()
     vec4 pos1 = mix(p00, p01, u);
 	vec4 pos2 = mix(p11, p10, u);
 	vec4 pos = mix(pos1, pos2, v);
-    pos.y += height;
+    pos.y += height - 30.0f;
 
    
     gl_Position = g.proj * g.view * ubo.model*  pos;

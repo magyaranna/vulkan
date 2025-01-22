@@ -87,7 +87,7 @@ namespace v {
 
         ImGui::SeparatorText("");
 
-        ImGui::SliderFloat("Sun Altitude Angle", &sunThetaAngle, 0.0, 180.0);
+        ImGui::SliderFloat("Sun Altitude Angle", &sunThetaAngle, -60.0, 180.0);
         ImGui::SliderFloat("Sun Azimuth Angle", &sunPhiAngle, 0.0, 360.0);
 
 

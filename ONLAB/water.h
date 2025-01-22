@@ -44,7 +44,7 @@ namespace v {
 
 	public:
 
-		float height = 60.0f; //15.0f;
+		float height = 0.0f; //15.0f;
 		Water(Device& device, VkRenderPass renderPass, DescriptorSetLayout& layout, DescriptorPool& pool);
 		~Water();
 

@@ -355,9 +355,6 @@
     <None Include="shaders\multiscatteringLUT.comp">
       <Filter>Source Files\shaders\skyLUTs</Filter>
     </None>
-    <None Include="shaders\transmittanceLUT.comp">
-      <Filter>Source Files\shaders\skyLUTs</Filter>
-    </None>
     <None Include="shaders\skyviewLUT.comp">
       <Filter>Source Files\shaders\skyLUTs</Filter>
     </None>
@@ -366,6 +363,12 @@
     </None>
     <None Include="shaders\water.frag">
       <Filter>Source Files\shaders\water</Filter>
+    </None>
+    <None Include="shaders\fullScreenTriangle.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="shaders\transmittanceLUT.comp">
+      <Filter>Source Files\shaders\skyLUTs</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

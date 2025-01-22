@@ -227,6 +227,7 @@
     <None Include="shaders\depthCascade.vert" />
     <None Include="shaders\ecsm.frag" />
     <None Include="shaders\esm.frag" />
+    <None Include="shaders\fullScreenTriangle.vert" />
     <None Include="shaders\gaussblur.frag" />
     <None Include="shaders\gaussblur_cascade.frag" />
     <None Include="shaders\multiscatteringLUT.comp" />

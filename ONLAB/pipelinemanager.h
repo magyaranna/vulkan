@@ -43,6 +43,7 @@ namespace v {
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/depth.frag -o shaders/depthFrag");
 
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/quad.vert -o shaders/quadVert.spv");
+			system("%VULKAN_SDK%/Bin/glslc.exe shaders/fullScreenTriangle.vert -o shaders/fullScreenTriangleVert.spv");
 
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/vsm.frag -o shaders/vsmFrag");
 			system("%VULKAN_SDK%/Bin/glslc.exe shaders/esm.frag -o shaders/esmFrag");
